@@ -51,7 +51,7 @@ AviaGuard is an AI-powered predictive maintenance system for aircraft safety tha
 ```bash
 # Clone the repository
 git https://github.com/pskumar04/AviaGuard-Intelligent-Multi-Modal-Predictive-Maintenance-for-Aircraft-Safety
-cd AviaGuard
+cd AviaGuard-Intelligent-Multi-Modal-Predictive-Maintenance-for-Aircraft-Safety
 
 # Create virtual environment
 python -m venv venv
