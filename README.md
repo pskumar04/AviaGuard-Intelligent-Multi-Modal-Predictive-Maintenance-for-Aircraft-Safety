@@ -66,7 +66,7 @@ python run.py
 
 # Open browser and go to
 http://localhost:5000
-
+```
 
 ## 📊 Datasets Used
 - NASA Turbofan Degradation Simulation Dataset (NASA, 2008)
