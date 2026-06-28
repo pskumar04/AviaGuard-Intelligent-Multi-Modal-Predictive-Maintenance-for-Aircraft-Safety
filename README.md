@@ -50,7 +50,7 @@ AviaGuard is an AI-powered predictive maintenance system for aircraft safety tha
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/AviaGuard.git
+git https://github.com/pskumar04/AviaGuard-Intelligent-Multi-Modal-Predictive-Maintenance-for-Aircraft-Safety
 cd AviaGuard
 
 # Create virtual environment
@@ -68,53 +68,42 @@ python run.py
 http://localhost:5000
 
 
-📊 Datasets Used
-NASA Turbofan Degradation Simulation Dataset (NASA, 2008)
+## 📊 Datasets Used
+- NASA Turbofan Degradation Simulation Dataset (NASA, 2008)
+- Rotor Blade Vibration Dataset (Lee et al., 2025)
+- Custom Multi-Sensor Dataset (50,000+ samples, 3 aircraft models)
 
-Rotor Blade Vibration Dataset (Lee et al., 2025)
+## 🔬 Model Architecture
+- The hybrid model consists of:
+- CNN Encoders: Separate 1D CNNs for vibration, thermal, acoustic, pressure data
+- Transformer Encoder: Multi-head self-attention for temporal dependencies
+- Multi-Task Learning: Fault classification (16 classes), severity prediction, aircraft type
 
-Custom Multi-Sensor Dataset (50,000+ samples, 3 aircraft models)
+## 📧 Email Notifications
+- Management: Summary alerts with condition status
+- Maintenance Team: Detailed alerts with sensor readings and recommendations
 
-🔬 Model Architecture
-The hybrid model consists of:
+## 🔮 Future Enhancements
+- Real sensor integration with aviation partners
+- Federated learning for privacy-preserving training
+- Digital twin integration for real-time health monitoring
+- Autonomous maintenance scheduling
+- DO-178C/ARINC 625 certification
 
-CNN Encoders: Separate 1D CNNs for vibration, thermal, acoustic, pressure data
+## 👥 Team
+| Name | Roll No. | Role |
+|------|----------|------|
+| T. Jagadeesh | 223J1A05H0 | Data Collection & Preprocessing |
+| R.G.R. Lalitha | 233J5A0516 | Hybrid Model Development |
+| P. Satish Kumar | 223J1A05D4 | Web Application & Email Integration |
+| S. Meghana | 223J1A05G5 | XAI & Visualization | 
+| K. Vimala Nanda | 233J5A0520 | Edge Deployment & Email Notifications |
+- **Guide**: Mr. Satyabrata Patro, Associate Professor, CSE
 
-Transformer Encoder: Multi-head self-attention for temporal dependencies
+## 📄 License
+- This project is for academic purposes. All rights reserved.
 
-Multi-Task Learning: Fault classification (16 classes), severity prediction, aircraft type
-
-📧 Email Notifications
-Management: Summary alerts with condition status
-
-Maintenance Team: Detailed alerts with sensor readings and recommendations
-
-🔮 Future Enhancements
-Real sensor integration with aviation partners
-
-Federated learning for privacy-preserving training
-
-Digital twin integration for real-time health monitoring
-
-Autonomous maintenance scheduling
-
-DO-178C/ARINC 625 certification
-
-👥 Team
-Name	Roll No.	Role
-T. Jagadeesh	 223J1A05H0	Data Collection & Preprocessing
-R.G.R. Lalitha	 233J5A0516	Hybrid Model Development
-P. Satish Kumar	 223J1A05D4	Web Application & Email Integration
-S. Meghana	     223J1A05G5	XAI & Visualization
-K. Vimala Nanda	 233J5A0520	Edge Deployment & Email Notifications
-Guide: Mr. Satyabrata Patro, Associate Professor, CSE
-
-📄 License
-This project is for academic purposes. All rights reserved.
-
-🙏 Acknowledgments
-Raghu Institute of Technology, Department of CSE
-
-Mr. Satyabrata Patro (Guide)
-
-Dr. S. Srinadhraju (HOD, CSE)
+## 🙏 Acknowledgments
+- **Raghu Institute of Technology, Department of CSE**
+- **Mr. Satyabrata Patro (Guide)**
+- **Dr. S. Srinadhraju (HOD, CSE)**
