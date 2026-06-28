@@ -1,0 +1,10 @@
+{
+  "generated": "2026-02-11T20:44:18.508521",
+  "num_sequences": 500,
+  "sequence_length": 1000,
+  "sampling_rate": 1000,
+  "normal_ratio": 0.85,
+  "fault_ratio": 0.15,
+  "sequences_path": "data/vibration\\vibration_sequences.npy",
+  "labels_path": "data/vibration\\vibration_labels.npy"
+}

@@ -1,0 +1,28 @@
+{
+  "generated": "2026-02-11T20:44:18.445821",
+  "num_samples": 5000,
+  "fault_percentage": 0.15,
+  "sensors": [
+    "timestamp",
+    "aircraft_id",
+    "flight_phase",
+    "vibration_rms",
+    "thermal_celsius",
+    "acoustic_db",
+    "pressure_psi",
+    "fault_detected",
+    "fault_type",
+    "severity"
+  ],
+  "fault_types": [
+    "bearing_wear",
+    "blade_damage",
+    "oil_leak",
+    "compressor_stall",
+    "ignition_failure",
+    "crack_detection",
+    "corrosion",
+    "fatigue"
+  ],
+  "data_path": "data/multi_sensor\\sample_data.csv"
+}

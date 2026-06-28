@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Processing Prediction{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 text-center">
+            <!-- Progress Bar -->
+            <div class="progress-container mb-5">
+                <div class="progress" style="height: 10px;">
+                    <div class="progress-bar bg-success" style="width: 75%"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <span class="text-success"><i class="fas fa-check-circle"></i> Model Selected</span>
+                    <span class="text-success"><i class="fas fa-check-circle"></i> Flight Details</span>
+                    <span class="text-success"><i class="fas fa-check-circle"></i> Survey Completed</span>
+                    <span class="text-primary"><strong><i class="fas fa-chart-line"></i> Processing Prediction</strong></span>
+                </div>
+            </div>
+
+            <!-- Loading Animation -->
+            <div class="loading-section py-5 my-5">
+                <div class="spinner-container mb-4">
+                    <div class="spinner-border text-primary" style="width: 5rem; height: 5rem;" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                
+                <h2 class="display-5 mb-4">
+                    <i class="fas fa-brain text-primary"></i> Analyzing Your Aircraft Data
+                </h2>
+                
+                <div class="loading-steps mb-5">
+                    <div class="step active" id="step1">
+                        <i class="fas fa-check-circle"></i> Processing survey data...
+                    </div>
+                    <div class="step" id="step2">
+                        <i class="fas fa-cog"></i> Running AI model analysis...
+                    </div>
+                    <div class="step" id="step3">
+                        <i class="fas fa-search"></i> Detecting potential faults...
+                    </div>
+                    <div class="step" id="step4">
+                        <i class="fas fa-chart-bar"></i> Generating explanations...
+                    </div>
+                    <div class="step" id="step5">
+                        <i class="fas fa-envelope"></i> Preparing email reports...
+                    </div>
+                </div>
+                
+                <p class="lead text-muted mb-4">
+                    Our AI model is analyzing your aircraft data to predict safety and detect potential failures.
+                    This usually takes 10-15 seconds.
+                </p>
+                
+                <div class="progress mb-5" style="height: 8px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                         id="progress-bar" style="width: 0%"></div>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Please do not close this window.</strong> Prediction results will be shown on the next page.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    let currentStep = 1;
+    const totalSteps = 5;
+    
+    // Function to update progress
+    function updateProgress() {
+        const progress = (currentStep / totalSteps) * 100;
+        $('#progress-bar').css('width', progress + '%');
+        
+        // Update step indicators
+        $('.step').removeClass('active');
+        $(`#step${currentStep}`).addClass('active');
+        
+        currentStep++;
+        
+        if (currentStep <= totalSteps) {
+            setTimeout(updateProgress, 2000); // Update every 2 seconds
+        } else {
+            // All steps complete, make API call
+            makePrediction();
+        }
+    }
+    
+    // Function to make prediction API call
+    function makePrediction() {
+        $.ajax({
+            url: '{{ url_for("api_predict") }}',
+            method: 'POST',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    // Redirect to prediction result page
+                    window.location.href = response.redirect_url;
+                } else {
+                    showError('Prediction failed. Please try again.');
+                }
+            },
+            error: function(xhr, status, error) {
+                showError('Error processing prediction: ' + error);
+            }
+        });
+    }
+    
+    // Function to show error
+    function showError(message) {
+        $('.loading-section').html(`
+            <div class="error-section py-5">
+                <div class="error-icon mb-4">
+                    <i class="fas fa-exclamation-triangle text-danger" style="font-size: 5rem;"></i>
+                </div>
+                <h3 class="text-danger">Prediction Failed</h3>
+                <p class="lead">${message}</p>
+                <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg mt-3">
+                    <i class="fas fa-home"></i> Return to Home
+                </a>
+            </div>
+        `);
+    }
+    
+    // Start progress animation
+    setTimeout(updateProgress, 1000);
+});
+</script>
+
+<style>
+.progress-container {
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+.loading-steps {
+    max-width: 500px;
+    margin: 0 auto 30px;
+}
+.step {
+    padding: 15px;
+    margin: 10px 0;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border-left: 5px solid #dee2e6;
+    transition: all 0.3s;
+}
+.step.active {
+    border-left-color: #0d6efd;
+    background: #e7f1ff;
+    font-weight: 500;
+}
+.step i {
+    margin-right: 10px;
+    width: 20px;
+}
+.spinner-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.progress-bar-animated {
+    animation: progress-bar-stripes 1s linear infinite;
+}
+</style>
+{% endblock %}

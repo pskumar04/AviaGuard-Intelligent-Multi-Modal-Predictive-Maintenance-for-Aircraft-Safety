@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flight Management Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .management-section { background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .flash-messages { margin-top: 20px; }
+        .disabled-input { background-color: #e9ecef; cursor: not-allowed; }
+        .loading { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Fetching flight data...</p>
+    </div>
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="flash-messages">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0">Flight Management & Maintenance Details</h3>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" id="flightForm">
+                            
+                            <div class="management-section">
+                                <h4>✈️ Flight Information</h4>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Flight Number *</label>
+                                        <input type="text" name="flight_number" id="flight_number" 
+                                               class="form-control" required 
+                                               pattern="[A-Z]{2,3}-\d{3,5}"
+                                               title="Format: Airline Code (2-3 letters) + Hyphen + Numbers (3-5 digits). Example: AI-2024, 6E-1234"
+                                               placeholder="e.g., AI-2024">
+                                        <small class="text-muted">Format: Airline Code (AI, 6E, SG) + Hyphen + Numbers (3-5 digits)</small>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Registration Number *</label>
+                                        <input type="text" name="registration" id="registration" 
+                                               class="form-control" required
+                                               pattern="VT-[A-Z]{3}|[A-Z]{2}-[A-Z]{3}|N\d{3}[A-Z]{2}"
+                                               title="Format: VT-ABC (India), N123AB (USA), G-ABCD (UK)"
+                                               placeholder="e.g., VT-ABC">
+                                        <small class="text-muted">Format: VT-ABC (India), N123AB (USA), G-ABCD (UK)</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="management-section">
+                                <h4>👔 Management Team</h4>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Management Contact Name *</label>
+                                        <input type="text" name="management_name" id="management_name" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Management Email *</label>
+                                        <input type="email" name="management_email" id="management_email" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label">Management Team/Department *</label>
+                                        <select name="management_team" id="management_team" class="form-select" required>
+                                            <option value="">Select Management Team</option>
+                                            {% for value, label in management_teams %}
+                                                <option value="{{ value }}">{{ label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="management-section">
+                                <h4>🔧 Maintenance Team</h4>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Maintenance Manager *</label>
+                                        <input type="text" name="maintenance_manager" id="maintenance_manager" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Maintenance Email *</label>
+                                        <input type="email" name="maintenance_email" id="maintenance_email" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label">Maintenance Team *</label>
+                                        <select name="maintenance_team" id="maintenance_team" class="form-select" required>
+                                            <option value="">Select Maintenance Team</option>
+                                            {% for value, label in maintenance_teams %}
+                                                <option value="{{ value }}">{{ label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="management-section">
+                                <h4>📊 Aircraft Statistics</h4>
+                                <div class="mb-3">
+                                    <label class="form-label">Total Aircraft Hours</label>
+                                    <input type="number" name="aircraft_hours" id="aircraft_hours" 
+                                        class="form-control" required min="0" max="50000" step="1"
+                                        value="{{ flight.total_flight_hours if flight else 0 }}">
+                                    <small class="text-muted">Current total flight hours. Will be updated after each flight.</small>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary btn-lg">Continue to Sensor Survey</button>
+                            <a href="/" class="btn btn-secondary btn-lg">Back</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    let searchTimeout;
+    let loadingTimeout;
+
+    $('#flight_number').on('input', function() {
+        clearTimeout(searchTimeout);
+        clearTimeout(loadingTimeout);
+        
+        const flightNumber = $(this).val().trim().toUpperCase();
+        $(this).val(flightNumber);
+        
+        if (flightNumber.length >= 5) {
+            $('#loading').show();
+            
+            // Hide loading after 5 seconds if no response
+            loadingTimeout = setTimeout(function() {
+                $('#loading').hide();
+                showToast('No flight found or server timeout', 'warning');
+            }, 5000);
+            
+            searchTimeout = setTimeout(function() {
+                fetchFlightData(flightNumber);
+            }, 800);
+        } else {
+            // Clear fields if flight number is too short
+            clearFlightFields();
+        }
+    });
+
+    function clearFlightFields() {
+        $('#registration').val('').prop('readonly', false).removeClass('disabled-input');
+        $('#management_name').val('');
+        $('#management_email').val('');
+        $('#management_team').val('');
+        $('#maintenance_manager').val('');
+        $('#maintenance_email').val('');
+        $('#maintenance_team').val('');
+        $('#aircraft_hours').val('');
+    }
+
+    function fetchFlightData(flightNumber) {
+        $.ajax({
+            url: '/api/get-flight-data',
+            method: 'POST',
+            data: JSON.stringify({ flight_number: flightNumber }),
+            contentType: 'application/json',
+            success: function(response) {
+                clearTimeout(loadingTimeout);
+                $('#loading').hide();
+                
+                if (response.success && response.data) {
+                    // Populate form with retrieved data
+                    $('#registration').val(response.data.registration_number).prop('readonly', true).addClass('disabled-input');
+                    $('#management_name').val(response.data.management_contact);
+                    $('#management_email').val(response.data.management_email);
+                    $('#management_team').val(response.data.management_team_id);
+                    $('#maintenance_manager').val(response.data.maintenance_manager);
+                    $('#maintenance_email').val(response.data.maintenance_email);
+                    $('#maintenance_team').val(response.data.maintenance_team_id);
+                    $('#aircraft_hours').val(response.data.total_flight_hours);
+                    
+                    showToast('Flight data loaded! You can modify management and maintenance details.', 'info');
+                } else {
+                    clearFlightFields();
+                    if (response.message) {
+                        showToast(response.message, 'warning');
+                    }
+                }
+            },
+            error: function(xhr) {
+                clearTimeout(loadingTimeout);
+                $('#loading').hide();
+                clearFlightFields();
+                showToast('Error fetching flight data. Please try again.', 'danger');
+            }
+        });
+    }
+    </script>
+</body>
+</html>

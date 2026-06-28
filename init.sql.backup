@@ -1,0 +1,172 @@
+-- Initialize Aircraft Predictive Maintenance Database
+
+-- Create extensions
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Users table
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(64) UNIQUE NOT NULL,
+    email VARCHAR(120) UNIQUE NOT NULL,
+    password_hash VARCHAR(256) NOT NULL,
+    role VARCHAR(20) DEFAULT 'user',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+-- Flight surveys table
+CREATE TABLE flight_surveys (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    aircraft_model VARCHAR(50) NOT NULL,
+    flight_details JSONB NOT NULL,
+    survey_data JSONB NOT NULL,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Prediction results table
+CREATE TABLE prediction_results (
+    id SERIAL PRIMARY KEY,
+    survey_id INTEGER REFERENCES flight_surveys(id),
+    user_id INTEGER REFERENCES users(id),
+    
+    -- Aircraft information
+    model_type VARCHAR(50) NOT NULL,
+    flight_number VARCHAR(20),
+    registration_number VARCHAR(20),
+    
+    -- Prediction data
+    survey_data JSONB NOT NULL,
+    prediction_result JSONB NOT NULL,
+    fault_detections JSONB NOT NULL,
+    flight_condition VARCHAR(20) NOT NULL,
+    confidence_score FLOAT DEFAULT 0.0,
+    
+    -- XAI explanations
+    shap_explanations JSONB,
+    lime_explanations JSONB,
+    
+    -- Contact information
+    owner_email VARCHAR(120),
+    management_email VARCHAR(120),
+    maintenance_email VARCHAR(120),
+    
+    -- Timestamps
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    email_sent BOOLEAN DEFAULT FALSE,
+    email_sent_at TIMESTAMP
+);
+
+-- Aircraft configurations table
+CREATE TABLE aircraft_configs (
+    id SERIAL PRIMARY KEY,
+    model_name VARCHAR(50) UNIQUE NOT NULL,
+    config_data JSONB NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Maintenance logs table
+CREATE TABLE maintenance_logs (
+    id SERIAL PRIMARY KEY,
+    aircraft_id VARCHAR(20) NOT NULL,
+    prediction_id INTEGER REFERENCES prediction_results(id),
+    maintenance_type VARCHAR(50) NOT NULL,
+    description TEXT,
+    performed_by VARCHAR(100),
+    performed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    next_due_date DATE
+);
+
+-- Create indexes for performance
+CREATE INDEX idx_prediction_results_timestamp ON prediction_results(timestamp DESC);
+CREATE INDEX idx_prediction_results_condition ON prediction_results(flight_condition);
+CREATE INDEX idx_prediction_results_model ON prediction_results(model_type);
+CREATE INDEX idx_flight_surveys_user ON flight_surveys(user_id);
+CREATE INDEX idx_maintenance_logs_aircraft ON maintenance_logs(aircraft_id);
+
+-- Create function to update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Create trigger for aircraft_configs
+CREATE TRIGGER update_aircraft_configs_updated_at
+    BEFORE UPDATE ON aircraft_configs
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Insert default aircraft configurations
+INSERT INTO aircraft_configs (model_name, config_data) VALUES
+('boeing_737', '{
+    "aircraft_model": "Boeing 737 NG",
+    "type": "Commercial Jet",
+    "engine_model": "CFM56-7B",
+    "max_passengers": 189,
+    "cruise_speed": "0.78 Mach",
+    "max_range": "3,200 nautical miles",
+    "manufacturer": "Boeing",
+    "introduction_year": 1997
+}'),
+('cessna_172', '{
+    "aircraft_model": "Cessna 172 Skyhawk",
+    "type": "Light Aircraft",
+    "engine_model": "Lycoming IO-360-L2A",
+    "max_passengers": 4,
+    "cruise_speed": "124 knots",
+    "max_range": "640 nautical miles",
+    "manufacturer": "Cessna",
+    "introduction_year": 1956
+}'),
+('airbus_h125', '{
+    "aircraft_model": "Airbus H125 (AS350)",
+    "type": "Helicopter",
+    "engine_model": "Turbomeca Arriel 2B",
+    "max_passengers": 6,
+    "cruise_speed": "132 knots",
+    "max_range": "345 nautical miles",
+    "manufacturer": "Airbus Helicopters",
+    "introduction_year": 1977
+}');
+
+-- Create admin user (password: admin123)
+INSERT INTO users (username, email, password_hash, role) VALUES
+('admin', 'admin@aircraft-pm.com', '$2b$12$YourHashedPasswordHere', 'admin');
+
+-- Create sample predictions for testing
+INSERT INTO flight_surveys (user_id, aircraft_model, flight_details, survey_data) VALUES
+(1, 'boeing_737', 
+    '{"owner_name": "John Doe", "flight_number": "AI-202", "registration_number": "VT-ABC"}',
+    '{"engine": {"n1_rpm": 98.5, "oil_pressure": 60}}'
+);
+
+INSERT INTO prediction_results (
+    survey_id, user_id, model_type, flight_number, registration_number,
+    survey_data, prediction_result, fault_detections, flight_condition,
+    confidence_score, owner_email, management_email, maintenance_email
+) VALUES
+(1, 1, 'boeing_737', 'AI-202', 'VT-ABC',
+    '{"engine": {"n1_rpm": 98.5, "oil_pressure": 60}}',
+    '{"flight_condition": "normal", "confidence": 0.92}',
+    '{"total_faults": 0, "critical_faults": 0}',
+    'normal', 0.92, 'owner@example.com', 'management@example.com', 'maintenance@example.com'
+);
+
+-- Create view for dashboard statistics
+CREATE VIEW dashboard_stats AS
+SELECT 
+    COUNT(*) as total_predictions,
+    COUNT(CASE WHEN flight_condition = 'normal' THEN 1 END) as safe_flights,
+    COUNT(CASE WHEN flight_condition = 'warning' THEN 1 END) as warning_flights,
+    COUNT(CASE WHEN flight_condition = 'critical' THEN 1 END) as critical_flights,
+    AVG(confidence_score) as avg_confidence,
+    MAX(timestamp) as last_prediction
+FROM prediction_results;
+
+-- Grant permissions (adjust as needed)
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO postgres;

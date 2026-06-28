@@ -1,0 +1,406 @@
+{% extends "base.html" %}
+
+{% block title %}Select Aircraft Model - Aircraft Predictive Maintenance{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Page Header -->
+    <div class="page-header text-center mb-5">
+        <h1 class="display-4 fw-bold">
+            <i class="fas fa-plane text-primary"></i> Select Your Aircraft Model
+        </h1>
+        <p class="lead">Choose from our supported aircraft models to begin the safety prediction process</p>
+        
+        <!-- Progress Indicator -->
+        <div class="progress-container mt-4">
+            <div class="progress" style="height: 10px;">
+                <div class="progress-bar bg-primary" style="width: 33%"></div>
+            </div>
+            <div class="d-flex justify-content-between mt-2">
+                <span class="text-primary"><strong><i class="fas fa-plane"></i> Select Model</strong></span>
+                <span class="text-muted"><i class="fas fa-user-friends"></i> Flight Details</span>
+                <span class="text-muted"><i class="fas fa-clipboard-list"></i> Technical Survey</span>
+                <span class="text-muted"><i class="fas fa-chart-line"></i> Prediction</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Information Card -->
+    <div class="alert alert-info mb-5">
+        <h4><i class="fas fa-info-circle"></i> How Model Selection Works</h4>
+        <p>Each aircraft model has specific sensors and parameters. Our AI model is trained specifically for:</p>
+        <ul class="mb-0">
+            <li><strong>Boeing 737 NG</strong>: Commercial jet with advanced sensor systems</li>
+            <li><strong>Cessna 172</strong>: Light aircraft with basic instrumentation</li>
+            <li><strong>Airbus H125</strong>: Helicopter with rotor-specific parameters</li>
+        </ul>
+    </div>
+
+    <!-- Model Selection Cards -->
+    <div class="row">
+        <!-- Boeing 737 NG -->
+        <div class="col-md-4 mb-4">
+            <div class="card model-selection-card shadow-lg h-100" 
+                 onclick="selectModel('boeing_737')" 
+                 style="cursor: pointer; border: 2px solid #0d6efd;">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <i class="fas fa-plane fa-3x mb-3"></i>
+                    <h3 class="card-title mb-0">{{ boeing_config.aircraft_model }}</h3>
+                </div>
+                <div class="card-body text-center">
+                    <h5 class="text-muted mb-3">{{ boeing_config.type }}</h5>
+                    
+                    <!-- Model Specifications -->
+                    <div class="model-specs mb-4">
+                        <div class="spec-item mb-2">
+                            <i class="fas fa-cogs text-primary"></i>
+                            <strong>Engine:</strong> {{ boeing_config.engine_model }}
+                        </div>
+                        <div class="spec-item mb-2">
+                            <i class="fas fa-users text-success"></i>
+                            <strong>Capacity:</strong> {{ boeing_config.max_passengers }} passengers
+                        </div>
+                        <div class="spec-item mb-2">
+                            <i class="fas fa-tachometer-alt text-warning"></i>
+                            <strong>Speed:</strong> {{ boeing_config.cruise_speed }}
+                        </div>
+                        <div class="spec-item mb-2">
+                            <i class="fas fa-road text-info"></i>
+                            <strong>Range:</strong> {{ boeing_config.max_range }}
+                        </div>
+                    </div>
+                    
+                    <!-- Key Parameters -->
+                    <div class="parameters mb-4">
+                        <h6><i class="fas fa-chart-line"></i> Key Parameters Monitored:</h6>
+                        <div class="d-flex flex-wrap justify-content-center">
+                            <span class="badge bg-primary m-1">N1/N2 RPM</span>
+                            <span class="badge bg-primary m-1">EGT</span>
+                            <span class="badge bg-primary m-1">Oil Pressure</span>
+                            <span class="badge bg-primary m-1">Vibration</span>
+                            <span class="badge bg-primary m-1">Hydraulic Pressure</span>
+                            <span class="badge bg-primary m-1">Cabin Pressure</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Prediction Accuracy -->
+                    <div class="accuracy mb-4">
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-success" style="width: 96%">
+                                AI Accuracy: 96%
+                            </div>
+                        </div>
+                        <small class="text-muted">Based on 10,000+ flight hours data</small>
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <button class="btn btn-primary btn-lg w-100">
+                        <i class="fas fa-rocket"></i> Select Boeing 737
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cessna 172 -->
+        <div class="col-md-4 mb-4">
+            <div class="card model-selection-card shadow-lg h-100" 
+                 onclick="selectModel('cessna_172')" 
+                 style="cursor: pointer; border: 2px solid #198754;">
+                <div class="card-header bg-success text-white text-center py-4">
+                    <i class="fas fa-plane fa-3x mb-3"></i>
+                    <h3 class="card-title mb-0">{{ cessna_config.aircraft_model }}</h3>
+                </div>
+                <div class="card-body text-center">
+                    <h5 class="text-muted mb-3">{{ cessna_config.type }}</h5>
+                    
+                    <!-- Model Specifications -->
+                    <div class="model-specs mb-4">
+                        <div class="spec-item mb-2">
+                            <i class="fas fa-cogs text-success"></i>
+                            <strong>Engine:</strong> {{ cessna_config.engine_model }}
+                        </div>
+                        <div class="spec-item mb-2">
+                            <i class="fas fa-users text-success"></i>
+                            <strong>Capacity:</strong> {{ cessna_config.max_passengers }} passengers
+                        </div>
+                        <div class="spec-item mb-2">
+                            <i class="fas fa-tachometer-alt text-warning"></i>
+                            <strong>Speed:</strong> {{ cessna_config.cruise_speed }}
+                        </div>
+                        <div class="spec-item mb-2">
+                            <i class="fas fa-road text-info"></i>
+                            <strong>Range:</strong> {{ cessna_config.max_range }}
+                        </div>
+                    </div>
+                    
+                    <!-- Key Parameters -->
+                    <div class="parameters mb-4">
+                        <h6><i class="fas fa-chart-line"></i> Key Parameters Monitored:</h6>
+                        <div class="d-flex flex-wrap justify-content-center">
+                            <span class="badge bg-success m-1">RPM</span>
+                            <span class="badge bg-success m-1">Manifold Pressure</span>
+                            <span class="badge bg-success m-1">Oil Temp/Pressure</span>
+                            <span class="badge bg-success m-1">Fuel Pressure</span>
+                            <span class="badge bg-success m-1">Cylinder Head Temp</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Prediction Accuracy -->
+                    <div class="accuracy mb-4">
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-success" style="width: 94%">
+                                AI Accuracy: 94%
+                            </div>
+                        </div>
+                        <small class="text-muted">Based on 5,000+ flight hours data</small>
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <button class="btn btn-success btn-lg w-100">
+                        <i class="fas fa-rocket"></i> Select Cessna 172
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Airbus H125 -->
+        <div class="col-md-4 mb-4">
+            <div class="card model-selection-card shadow-lg h-100" 
+                 onclick="selectModel('airbus_h125')" 
+                 style="cursor: pointer; border: 2px solid #0dcaf0;">
+                <div class="card-header bg-info text-white text-center py-4">
+                    <i class="fas fa-helicopter fa-3x mb-3"></i>
+                    <h3 class="card-title mb-0">{{ airbus_config.aircraft_model }}</h3>
+                </div>
+                <div class="card-body text-center">
+                    <h5 class="text-muted mb-3">{{ airbus_config.type }}</h5>
+                    
+                    <!-- Model Specifications -->
+                    <div class="model-specs mb-4">
+                        <div class="spec-item mb-2">
+                            <i class="fas fa-cogs text-info"></i>
+                            <strong>Engine:</strong> {{ airbus_config.engine_model }}
+                        </div>
+                        <div class="spec-item mb-2">
+                            <i class="fas fa-users text-success"></i>
+                            <strong>Capacity:</strong> {{ airbus_config.max_passengers }} passengers
+                        </div>
+                        <div class="spec-item mb-2">
+                            <i class="fas fa-tachometer-alt text-warning"></i>
+                            <strong>Speed:</strong> {{ airbus_config.cruise_speed }}
+                        </div>
+                        <div class="spec-item mb-2">
+                            <i class="fas fa-road text-info"></i>
+                            <strong>Range:</strong> {{ airbus_config.max_range }}
+                        </div>
+                    </div>
+                    
+                    <!-- Key Parameters -->
+                    <div class="parameters mb-4">
+                        <h6><i class="fas fa-chart-line"></i> Key Parameters Monitored:</h6>
+                        <div class="d-flex flex-wrap justify-content-center">
+                            <span class="badge bg-info m-1">Rotor RPM</span>
+                            <span class="badge bg-info m-1">Vibration Levels</span>
+                            <span class="badge bg-info m-1">Track & Balance</span>
+                            <span class="badge bg-info m-1">Torque</span>
+                            <span class="badge bg-info m-1">T4 Temperature</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Prediction Accuracy -->
+                    <div class="accuracy mb-4">
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-success" style="width: 92%">
+                                AI Accuracy: 92%
+                            </div>
+                        </div>
+                        <small class="text-muted">Based on 3,000+ flight hours data</small>
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <button class="btn btn-info btn-lg w-100">
+                        <i class="fas fa-rocket"></i> Select Airbus H125
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comparison Table -->
+    <div class="card mt-5">
+        <div class="card-header bg-dark text-white">
+            <h4 class="mb-0"><i class="fas fa-balance-scale"></i> Model Comparison</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Feature</th>
+                            <th>Boeing 737 NG</th>
+                            <th>Cessna 172</th>
+                            <th>Airbus H125</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Primary Use</strong></td>
+                            <td>Commercial Aviation</td>
+                            <td>Training & Personal</td>
+                            <td>Helicopter Operations</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Typical Operators</strong></td>
+                            <td>Airlines, Cargo</td>
+                            <td>Flight Schools, Private Owners</td>
+                            <td>Emergency Services, Tourism</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Sensor Complexity</strong></td>
+                            <td>High (100+ sensors)</td>
+                            <td>Medium (20-30 sensors)</td>
+                            <td>High (80+ sensors)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Survey Time</strong></td>
+                            <td>8-10 minutes</td>
+                            <td>5-7 minutes</td>
+                            <td>7-9 minutes</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Common Issues Detected</strong></td>
+                            <td>Engine wear, System faults</td>
+                            <td>Engine issues, Basic systems</td>
+                            <td>Rotor issues, Vibration</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Next Steps -->
+    <div class="next-steps mt-5">
+        <h3 class="text-center mb-4">What Happens Next?</h3>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="step text-center p-3">
+                    <div class="step-number">1</div>
+                    <h5>Select Model</h5>
+                    <p>Choose your aircraft from the options above</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="step text-center p-3">
+                    <div class="step-number">2</div>
+                    <h5>Flight Details</h5>
+                    <p>Enter owner, pilot, and management information</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="step text-center p-3">
+                    <div class="step-number">3</div>
+                    <h5>Technical Survey</h5>
+                    <p>Answer aircraft-specific technical questions</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="step text-center p-3">
+                    <div class="step-number">4</div>
+                    <h5>Get Prediction</h5>
+                    <p>Receive AI-powered safety assessment</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="text-center mt-5">
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary btn-lg">
+            <i class="fas fa-arrow-left"></i> Back to Home
+        </a>
+    </div>
+</div>
+
+<script>
+function selectModel(modelName) {
+    window.location.href = `/select-model/${modelName}`;
+}
+
+// Add hover effects
+$(document).ready(function() {
+    $('.model-selection-card').hover(
+        function() {
+            $(this).addClass('shadow-xl');
+            $(this).find('.card-header').css('opacity', '0.95');
+        },
+        function() {
+            $(this).removeClass('shadow-xl');
+            $(this).find('.card-header').css('opacity', '1');
+        }
+    );
+});
+</script>
+
+<style>
+.progress-container {
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    margin-bottom: 30px;
+}
+.model-selection-card {
+    transition: all 0.3s ease;
+    border-radius: 15px;
+    overflow: hidden;
+}
+.model-selection-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
+}
+.model-specs {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    margin: 15px 0;
+}
+.spec-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.parameters .badge {
+    font-size: 0.85rem;
+    padding: 8px 12px;
+}
+.step {
+    border: 2px solid #dee2e6;
+    border-radius: 10px;
+    transition: all 0.3s;
+}
+.step:hover {
+    border-color: #0d6efd;
+    background: #f8f9fa;
+}
+.step-number {
+    width: 40px;
+    height: 40px;
+    background: #0d6efd;
+    color: white;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+.table th, .table td {
+    text-align: center;
+    vertical-align: middle;
+}
+.shadow-xl {
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,137 @@
+version: '3.8'
+
+services:
+  # Website Application
+  website:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: aircraft-pm-website
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - DATABASE_URL=postgresql://postgres:password@db:5432/aircraft_pm
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
+      - MAIL_SERVER=${MAIL_SERVER:-smtp.gmail.com}
+      - MAIL_PORT=${MAIL_PORT:-587}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+    volumes:
+      - ./website:/app/website
+      - ./data:/app/data
+      - ./results:/app/results
+      - website_logs:/app/logs
+      - website_static:/app/website/static
+    depends_on:
+      - db
+      - redis
+    networks:
+      - aircraft-network
+    restart: unless-stopped
+
+  # Database (PostgreSQL)
+  db:
+    image: postgres:15-alpine
+    container_name: aircraft-pm-db
+    environment:
+      - POSTGRES_DB=aircraft_pm
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - aircraft-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: aircraft-pm-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - aircraft-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # ML Model Service
+  ml-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: aircraft-pm-ml
+    ports:
+      - "8080:8080"
+    environment:
+      - MODEL_PATH=/app/models/final_model.h5
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ./models:/app/models
+      - ./results:/app/results
+    command: ["python", "-m", "web_app.streamlit_dashboard"]
+    depends_on:
+      - redis
+    networks:
+      - aircraft-network
+    restart: unless-stopped
+
+  # Streamlit Dashboard
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: aircraft-pm-dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@db:5432/aircraft_pm
+    volumes:
+      - ./web_app:/app/web_app
+      - ./data:/app/data
+    depends_on:
+      - db
+    networks:
+      - aircraft-network
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy (optional)
+  nginx:
+    image: nginx:alpine
+    container_name: aircraft-pm-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+      - website_static:/var/www/static
+    depends_on:
+      - website
+      - dashboard
+    networks:
+      - aircraft-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  website_logs:
+  website_static:
+
+networks:
+  aircraft-network:
+    driver: bridge

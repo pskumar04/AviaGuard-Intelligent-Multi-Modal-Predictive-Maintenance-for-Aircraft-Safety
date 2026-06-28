@@ -1,0 +1,762 @@
+{% extends "base.html" %}
+
+{% set is_disabled = is_disabled|default(false) %}
+
+{% block title %}Airbus H125 Survey - Aircraft Predictive Maintenance{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Progress Bar -->
+            <div class="progress-container mb-5">
+                <div class="progress" style="height: 10px;">
+                    <div class="progress-bar bg-success" style="width: 66%"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <span class="text-success"><i class="fas fa-check-circle"></i> Model Selected</span>
+                    <span class="text-success"><i class="fas fa-check-circle"></i> Flight Details</span>
+                    <span class="text-primary"><strong><i class="fas fa-clipboard-list"></i> Airbus H125 Survey</strong></span>
+                    <span class="text-muted"><i class="fas fa-chart-line"></i> Prediction</span>
+                </div>
+            </div>
+
+            <!-- Page Header -->
+            <div class="page-header text-center mb-4">
+                <h1 class="display-5">
+                    <i class="fas fa-helicopter text-info"></i> Airbus H125 Technical Survey
+                </h1>
+                <p class="lead">Please provide current rotor system and engine parameters for your Airbus H125</p>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> 
+                    <strong>Airbus H125 (AS350)</strong> - Single-engine, light utility helicopter
+                </div>
+            </div>
+
+            <!-- Helicopter Image & Info -->
+            <div class="row mb-5">
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-helicopter fa-4x text-info mb-3"></i>
+                            <h5>{{ config.aircraft_model }}</h5>
+                            <p class="text-muted mb-0">{{ config.type }}</p>
+                            <p class="mb-0"><strong>Engine:</strong> {{ config.engine_model }}</p>
+                            <hr>
+                            <p class="small mb-0">
+                                <i class="fas fa-cogs"></i> Turbomeca Arriel 2B<br>
+                                <i class="fas fa-users"></i> {{ config.max_passengers }} seats<br>
+                                <i class="fas fa-tachometer-alt"></i> {{ config.cruise_speed }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5><i class="fas fa-exclamation-triangle"></i> Important Helicopter Notes</h5>
+                            <ul class="mb-0">
+                                <li><strong>Rotor System</strong>: Critical component - provide accurate vibration data</li>
+                                <li><strong>Track & Balance</strong>: Must be within 0.1 units for safe operation</li>
+                                <li><strong>Vibration Levels</strong>: Should be below 0.5 ips (inches per second)</li>
+                                <li><strong>Engine Parameters</strong>: Monitor torque and T4 temperature closely</li>
+                                <li><strong>Helicopter Specific</strong>: Higher sensitivity to parameter changes than fixed-wing</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Survey Form -->
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('survey_airbus_h125') }}">
+
+                        {% if is_disabled %}
+                        <div class="alert alert-warning mb-4">
+                            <i class="fas fa-info-circle"></i> 
+                            <strong>Survey already completed!</strong> The data below has been saved and cannot be modified.
+                        </div>
+                        {% endif %}
+
+                        {{ form.hidden_tag() }}
+
+                        <!-- Rotor System Section -->
+                        <fieldset class="mb-5">
+                            <legend class="border-bottom pb-2 mb-4">
+                                <i class="fas fa-fan text-danger"></i> Rotor System Parameters
+                            </legend>
+                            
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <strong>Critical Safety Component:</strong> Rotor system parameters are most important for helicopter safety.
+                            </div>
+                            
+                            <div class="row">
+                                <!-- Rotor RPM -->
+                                <div class="col-md-6 mb-4">
+                                    <div class="parameter-card critical">
+                                        <div class="parameter-header">
+                                            <h5>{{ form.rotor_rpm.label.text }}</h5>
+                                            <span class="badge bg-danger">CRITICAL: 300-400 RPM</span>
+                                        </div>
+                                        <div class="input-group">
+                                            {{ form.rotor_rpm(class="form-control form-control-lg", 
+                                                placeholder="e.g., 350",
+                                                min="0",
+                                                max="500",
+                                                step="1",
+                                                value=existing_data.get('rotor_rpm', 350),
+                                                readonly=is_disabled,
+                                                disabled=is_disabled) }}
+                                            <span class="input-group-text">RPM</span>
+                                        </div>
+                                        <small class="form-text text-muted">{{ form.rotor_rpm.description }}</small>
+                                        <div class="parameter-status mt-2">
+                                            <div class="progress" style="height: 10px;">
+                                                <div class="progress-bar bg-danger" id="rotor-rpm-status"></div>
+                                            </div>
+                                            <small id="rotor-rpm-feedback" class="form-text"></small>
+                                        </div>
+                                        {% if form.rotor_rpm.errors %}
+                                            <div class="text-danger mt-2">
+                                                {% for error in form.rotor_rpm.errors %}
+                                                    <small>{{ error }}</small>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Vibration Level -->
+                                <div class="col-md-6 mb-4">
+                                    <div class="parameter-card critical">
+                                        <div class="parameter-header">
+                                            <h5>{{ form.vibration_level.label.text }}</h5>
+                                            <span class="badge bg-danger">CRITICAL: 0-0.5 ips</span>
+                                        </div>
+                                        <div class="input-group">
+                                            {{ form.vibration_level(class="form-control form-control-lg", 
+                                                placeholder="e.g., 0.2",
+                                                min="0",
+                                                max="1",
+                                                step="0.01",
+                                                value=existing_data.get('vibration_level', 0.2),
+                                                readonly=is_disabled,
+                                                disabled=is_disabled) }}
+                                            <span class="input-group-text">ips</span>
+                                        </div>
+                                        <small class="form-text text-muted">{{ form.vibration_level.description }}</small>
+                                        <div class="parameter-status mt-2">
+                                            <div class="progress" style="height: 10px;">
+                                                <div class="progress-bar bg-danger" id="vibration-status"></div>
+                                            </div>
+                                            <small id="vibration-feedback" class="form-text"></small>
+                                        </div>
+                                        {% if form.vibration_level.errors %}
+                                            <div class="text-danger mt-2">
+                                                {% for error in form.vibration_level.errors %}
+                                                    <small>{{ error }}</small>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Track and Balance -->
+                                <div class="col-md-6 mb-4">
+                                    <div class="parameter-card critical">
+                                        <div class="parameter-header">
+                                            <h5>{{ form.track_and_balance.label.text }}</h5>
+                                            <span class="badge bg-danger">CRITICAL: 0-0.1 units</span>
+                                        </div>
+                                        <div class="input-group">
+                                            {{ form.track_and_balance(class="form-control form-control-lg", 
+                                                placeholder="e.g., 0.05",
+                                                min="0",
+                                                max="0.5",
+                                                step="0.01",
+                                                value=existing_data.get('track_and_balance', 0.04),
+                                                readonly=is_disabled,
+                                                disabled=is_disabled) }}
+                                            <span class="input-group-text">units</span>
+                                        </div>
+                                        <small class="form-text text-muted">{{ form.track_and_balance.description }}</small>
+                                        <div class="parameter-status mt-2">
+                                            <div class="progress" style="height: 10px;">
+                                                <div class="progress-bar bg-danger" id="track-status"></div>
+                                            </div>
+                                            <small id="track-feedback" class="form-text"></small>
+                                        </div>
+                                        {% if form.track_and_balance.errors %}
+                                            <div class="text-danger mt-2">
+                                                {% for error in form.track_and_balance.errors %}
+                                                    <small>{{ error }}</small>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Rotor Health Indicator -->
+                                <div class="col-md-6 mb-4">
+                                    <div class="health-indicator">
+                                        <h5><i class="fas fa-heartbeat"></i> Rotor System Health</h5>
+                                        <div class="health-meter mt-3">
+                                            <div class="progress" style="height: 25px;">
+                                                <div class="progress-bar" id="rotor-health-meter"></div>
+                                            </div>
+                                            <div class="health-labels d-flex justify-content-between mt-2">
+                                                <span class="text-danger">Poor</span>
+                                                <span class="text-warning">Fair</span>
+                                                <span class="text-success">Good</span>
+                                                <span class="text-success">Excellent</span>
+                                            </div>
+                                        </div>
+                                        <p id="rotor-health-text" class="mt-2 text-center"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <!-- Engine Parameters Section -->
+                        <fieldset class="mb-5">
+                            <legend class="border-bottom pb-2 mb-4">
+                                <i class="fas fa-engine text-warning"></i> Engine Parameters (Turbomeca Arriel 2B)
+                            </legend>
+                            
+                            <div class="row">
+                                <!-- Torque -->
+                                <div class="col-md-4 mb-4">
+                                    <div class="parameter-card">
+                                        <div class="parameter-header">
+                                            <h5>{{ form.torque.label.text }}</h5>
+                                            <span class="badge bg-warning">Normal: 20-80%</span>
+                                        </div>
+                                        <div class="input-group">
+                                            {{ form.torque(class="form-control form-control-lg", 
+                                                placeholder="e.g., 65",
+                                                min="0",
+                                                max="100",
+                                                step="1",
+                                                value=existing_data.get('torque', 65),
+                                                readonly=is_disabled,
+                                                disabled=is_disabled) }}
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                        <small class="form-text text-muted">{{ form.torque.description }}</small>
+                                        <div class="parameter-status mt-2">
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar bg-warning" id="torque-status"></div>
+                                            </div>
+                                            <small id="torque-feedback" class="form-text"></small>
+                                        </div>
+                                        {% if form.torque.errors %}
+                                            <div class="text-danger mt-2">
+                                                {% for error in form.torque.errors %}
+                                                    <small>{{ error }}</small>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- NG -->
+                                <div class="col-md-4 mb-4">
+                                    <div class="parameter-card">
+                                        <div class="parameter-header">
+                                            <h5>{{ form.ng.label.text }}</h5>
+                                            <span class="badge bg-warning">Normal: 98-102%</span>
+                                        </div>
+                                        <div class="input-group">
+                                            {{ form.ng(class="form-control form-control-lg", 
+                                                placeholder="e.g., 100.5",
+                                                min="0",
+                                                max="120",
+                                                step="0.1",
+                                                value=existing_data.get('ng', 100.2),
+                                                readonly=is_disabled,
+                                                disabled=is_disabled) }}
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                        <small class="form-text text-muted">{{ form.ng.description }}</small>
+                                        <div class="parameter-status mt-2">
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar bg-warning" id="ng-status"></div>
+                                            </div>
+                                            <small id="ng-feedback" class="form-text"></small>
+                                        </div>
+                                        {% if form.ng.errors %}
+                                            <div class="text-danger mt-2">
+                                                {% for error in form.ng.errors %}
+                                                    <small>{{ error }}</small>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- T4 Temperature -->
+                                <div class="col-md-4 mb-4">
+                                    <div class="parameter-card">
+                                        <div class="parameter-header">
+                                            <h5>{{ form.t4.label.text }}</h5>
+                                            <span class="badge bg-warning">Normal: 500-850°C</span>
+                                        </div>
+                                        <div class="input-group">
+                                            {{ form.t4(class="form-control form-control-lg", 
+                                                placeholder="e.g., 700",
+                                                min="0",
+                                                max="1000",
+                                                step="5",
+                                                value=existing_data.get('t4', 680),
+                                                readonly=is_disabled,
+                                                disabled=is_disabled) }}
+                                            <span class="input-group-text">°C</span>
+                                        </div>
+                                        <small class="form-text text-muted">{{ form.t4.description }}</small>
+                                        <div class="parameter-status mt-2">
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar bg-warning" id="t4-status"></div>
+                                            </div>
+                                            <small id="t4-feedback" class="form-text"></small>
+                                        </div>
+                                        {% if form.t4.errors %}
+                                            <div class="text-danger mt-2">
+                                                {% for error in form.t4.errors %}
+                                                    <small>{{ error }}</small>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <!-- Helicopter Safety Notes -->
+                        <div class="alert alert-danger mb-5">
+                            <h5><i class="fas fa-skull-crossbones"></i> Critical Safety Considerations</h5>
+                            <ul class="mb-0">
+                                <li><strong>Rotor RPM outside 300-400 RPM</strong>: Immediate grounding required</li>
+                                <li><strong>Vibration above 0.5 ips</strong>: Do not fly, rotor balance needed</li>
+                                <li><strong>Track & Balance above 0.1</strong>: Requires immediate maintenance</li>
+                                <li><strong>T4 temperature above 850°C</strong>: Engine damage risk, reduce power</li>
+                                <li><strong>Torque fluctuations</strong>: Indicates transmission or engine issues</li>
+                            </ul>
+                        </div>
+
+                        <!-- Form Buttons -->
+                        <div class="d-flex justify-content-between mt-5 pt-4 border-top">
+                            <a href="{{ url_for('flight_details') }}" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-arrow-left"></i> Back to Flight Details
+                            </a>
+                            <button type="button" class="btn btn-info btn-lg" id="fillTypical" {% if is_disabled %}disabled{% endif %}>
+                                <i class="fas fa-magic"></i> Fill Typical Values
+                            </button>
+                            {{ form.submit(class="btn btn-info btn-lg px-5", disabled=is_disabled) }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Helicopter Reference Information -->
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0"><i class="fas fa-ban"></i> Critical Limits</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Parameter</th>
+                                        <th>Critical Limit</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Rotor RPM</td>
+                                        <td>&lt;300 or &gt;400</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Vibration</td>
+                                        <td>&gt;0.5 ips</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Track & Balance</td>
+                                        <td>&gt;0.1 units</td>
+                                    </tr>
+                                    <tr>
+                                        <td>T4 Temperature</td>
+                                        <td>&gt;850°C</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header bg-warning text-white">
+                            <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Warning Limits</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Parameter</th>
+                                        <th>Warning Limit</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Rotor RPM</td>
+                                        <td>310-390 RPM</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Vibration</td>
+                                        <td>0.4-0.5 ips</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Torque</td>
+                                        <td>&gt;85%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>T4 Temperature</td>
+                                        <td>800-850°C</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0"><i class="fas fa-check-circle"></i> Normal Ranges</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Parameter</th>
+                                        <th>Normal Range</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Rotor RPM</td>
+                                        <td>350-370 RPM</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Vibration</td>
+                                        <td>0-0.3 ips</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Torque</td>
+                                        <td>60-75%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>T4 Temperature</td>
+                                        <td>650-750°C</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Helicopter Specific Tips -->
+            <div class="card mt-4">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-helicopter"></i> Airbus H125 Specific Maintenance Tips</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-fan text-danger"></i> Rotor System</h6>
+                            <ul>
+                                <li>Check blade tracking every 50 flight hours</li>
+                                <li>Balance rotor system if vibration exceeds 0.3 ips</li>
+                                <li>Inspect rotor head for cracks regularly</li>
+                                <li>Monitor lead-lag damper condition</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-engine text-warning"></i> Engine System</h6>
+                            <ul>
+                                <li>Monitor T4 trend - rising indicates wear</li>
+                                <li>Check torque split between engines</li>
+                                <li>Monitor oil consumption rate</li>
+                                <li>Check compressor wash schedule</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Fill typical values
+    $('#fillTypical').click(function() {
+        $('#rotor_rpm').val(360);
+        $('#vibration_level').val(0.15);
+        $('#track_and_balance').val(0.03);
+        $('#torque').val(65);
+        $('#ng').val(100.2);
+        $('#t4').val(680);
+        
+        // Update all status indicators
+        updateParameterStatus('rotor_rpm', 360);
+        updateParameterStatus('vibration_level', 0.15);
+        updateParameterStatus('track_and_balance', 0.03);
+        updateParameterStatus('torque', 65);
+        updateParameterStatus('ng', 100.2);
+        updateParameterStatus('t4', 680);
+        
+        showToast('Typical values filled. Please verify and adjust as needed.', 'info');
+    });
+    
+    // Real-time validation for each parameter
+    $('#rotor_rpm').on('input', function() { 
+        updateParameterStatus('rotor_rpm', $(this).val());
+        updateRotorHealth();
+    });
+    $('#vibration_level').on('input', function() { 
+        updateParameterStatus('vibration_level', $(this).val());
+        updateRotorHealth();
+    });
+    $('#track_and_balance').on('input', function() { 
+        updateParameterStatus('track_and_balance', $(this).val());
+        updateRotorHealth();
+    });
+    $('#torque').on('input', function() { updateParameterStatus('torque', $(this).val()); });
+    $('#ng').on('input', function() { updateParameterStatus('ng', $(this).val()); });
+    $('#t4').on('input', function() { updateParameterStatus('t4', $(this).val()); });
+    
+    // Initialize all status indicators
+    updateParameterStatus('rotor_rpm', $('#rotor_rpm').val());
+    updateParameterStatus('vibration_level', $('#vibration_level').val());
+    updateParameterStatus('track_and_balance', $('#track_and_balance').val());
+    updateParameterStatus('torque', $('#torque').val());
+    updateParameterStatus('ng', $('#ng').val());
+    updateParameterStatus('t4', $('#t4').val());
+    updateRotorHealth();
+});
+
+function updateParameterStatus(paramId, value) {
+    const val = parseFloat(value) || 0;
+    let min, max, normalMin, normalMax, $bar, $feedback;
+    
+    // Define parameter ranges (helicopter specific)
+    const ranges = {
+        'rotor_rpm': { min: 0, max: 500, normalMin: 300, normalMax: 400, critical: true },
+        'vibration_level': { min: 0, max: 1, normalMin: 0, normalMax: 0.5, critical: true },
+        'track_and_balance': { min: 0, max: 0.5, normalMin: 0, normalMax: 0.1, critical: true },
+        'torque': { min: 0, max: 100, normalMin: 20, normalMax: 80, critical: false },
+        'ng': { min: 0, max: 120, normalMin: 98, normalMax: 102, critical: false },
+        't4': { min: 0, max: 1000, normalMin: 500, normalMax: 850, critical: false }
+    };
+    
+    const range = ranges[paramId];
+    if (!range) return;
+    
+    $bar = $(`#${paramId}-status`);
+    $feedback = $(`#${paramId}-feedback`);
+    
+    // Calculate percentage within normal range
+    let percent;
+    if (val < range.normalMin) {
+        percent = (val / range.normalMin) * 33;
+    } else if (val > range.normalMax) {
+        percent = 67 + ((val - range.normalMin) / (range.max - range.normalMin)) * 33;
+    } else {
+        percent = 33 + ((val - range.normalMin) / (range.normalMax - range.normalMin)) * 34;
+    }
+    
+    // Set color and feedback based on criticality
+    let color, text;
+    if (range.critical) {
+        if (val < range.normalMin || val > range.normalMax) {
+            color = 'bg-danger';
+            text = 'CRITICAL - Outside safe range';
+        } else if (val < range.normalMin * 1.1 && val > range.normalMin * 0.9 && 
+                   val < range.normalMax * 0.9 && val > range.normalMax * 0.9) {
+            color = 'bg-warning';
+            text = 'Warning - Near limit';
+        } else {
+            color = 'bg-success';
+            text = 'Within safe range';
+        }
+    } else {
+        if (val < range.normalMin || val > range.normalMax) {
+            color = 'bg-warning';
+            text = 'Outside normal range';
+        } else {
+            color = 'bg-success';
+            text = 'Within normal range';
+        }
+    }
+    
+    $bar.removeClass('bg-success bg-warning bg-danger').addClass(color);
+    $feedback.text(text).removeClass('text-success text-warning text-danger')
+        .addClass(color.replace('bg-', 'text-'));
+    
+    $bar.css('width', Math.min(Math.max(percent, 0), 100) + '%');
+}
+
+function updateRotorHealth() {
+    const rpm = parseFloat($('#rotor_rpm').val()) || 0;
+    const vibration = parseFloat($('#vibration_level').val()) || 0;
+    const track = parseFloat($('#track_and_balance').val()) || 0;
+    
+    // Calculate health score (0-100)
+    let score = 100;
+    
+    // RPM component (40% weight)
+    if (rpm >= 350 && rpm <= 370) score += 0; // Perfect
+    else if (rpm >= 340 && rpm <= 380) score -= 10;
+    else if (rpm >= 320 && rpm <= 400) score -= 20;
+    else if (rpm >= 300 && rpm <= 420) score -= 30;
+    else score -= 40;
+    
+    // Vibration component (40% weight)
+    if (vibration <= 0.2) score += 0; // Perfect
+    else if (vibration <= 0.3) score -= 10;
+    else if (vibration <= 0.4) score -= 20;
+    else if (vibration <= 0.5) score -= 30;
+    else score -= 40;
+    
+    // Track component (20% weight)
+    if (track <= 0.05) score += 0; // Perfect
+    else if (track <= 0.08) score -= 5;
+    else if (track <= 0.1) score -= 10;
+    else if (track <= 0.15) score -= 15;
+    else score -= 20;
+    
+    score = Math.max(0, Math.min(100, score));
+    
+    // Update health meter
+    const $meter = $('#rotor-health-meter');
+    const $text = $('#rotor-health-text');
+    
+    $meter.css('width', score + '%');
+    
+    if (score >= 80) {
+        $meter.removeClass('bg-warning bg-danger').addClass('bg-success');
+        $text.text('Excellent rotor condition').removeClass('text-warning text-danger').addClass('text-success');
+    } else if (score >= 60) {
+        $meter.removeClass('bg-success bg-danger').addClass('bg-warning');
+        $text.text('Good rotor condition').removeClass('text-success text-danger').addClass('text-warning');
+    } else if (score >= 40) {
+        $meter.removeClass('bg-success bg-warning').addClass('bg-danger');
+        $text.text('Fair rotor condition - monitor closely').removeClass('text-success text-warning').addClass('text-danger');
+    } else {
+        $meter.removeClass('bg-success bg-warning').addClass('bg-danger');
+        $text.text('Poor rotor condition - maintenance needed').removeClass('text-success text-warning').addClass('text-danger');
+    }
+}
+
+function showToast(message, type) {
+    const toast = $(`
+        <div class="toast align-items-center text-white bg-${type} border-0"
+             style="position: fixed; top: 20px; right: 20px; z-index: 9999;" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `);
+    $('body').append(toast);
+    const bsToast = new bootstrap.Toast(toast[0]);
+    bsToast.show();
+    setTimeout(() => toast.remove(), 3000);
+}
+</script>
+
+<style>
+.progress-container {
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+.parameter-card {
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    height: 100%;
+    transition: all 0.3s;
+}
+.parameter-card.critical {
+    border: 2px solid #dc3545;
+    background: linear-gradient(135deg, #ffffff 0%, #fff5f5 100%);
+}
+.parameter-card:not(.critical) {
+    border: 2px solid #ffc107;
+    background: linear-gradient(135deg, #ffffff 0%, #fffdf0 100%);
+}
+.parameter-card:hover {
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    transform: translateY(-3px);
+}
+.parameter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.parameter-header h5 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #333;
+}
+.parameter-header .badge {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+}
+.parameter-status .progress {
+    border-radius: 4px;
+    overflow: hidden;
+}
+.input-group-text {
+    background: #f8f9fa;
+    font-weight: 500;
+    min-width: 80px;
+}
+fieldset {
+    padding: 25px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 1px solid #dee2e6;
+}
+legend {
+    font-weight: 600;
+    color: #0dcaf0;
+    width: auto;
+    padding: 0 15px;
+    font-size: 1.3rem;
+}
+.health-indicator {
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.health-meter .progress {
+    border-radius: 10px;
+    overflow: hidden;
+}
+.health-labels span {
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+</style>
+{% endblock %}

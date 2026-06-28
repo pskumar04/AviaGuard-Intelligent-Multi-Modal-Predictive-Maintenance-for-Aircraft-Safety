@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Aircraft Predictive Maintenance{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <div class="hero-section text-center py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold text-primary mb-3">
+                    <i class="fas fa-plane-departure"></i> Welcome to Aircraft Predictive Maintenance
+                </h1>
+                <p class="lead mb-4">
+                    AI-powered system to predict flight safety and detect potential failures before they happen.
+                    Ensure your aircraft is safe to fly with our advanced predictive analytics.
+                </p>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> 
+                    <strong>Click on any aircraft model below</strong> to start the safety prediction process.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How it Works -->
+    <div class="how-it-works py-4 mb-5">
+        <h2 class="text-center mb-4">How It Works</h2>
+        <div class="row">
+            <div class="col-md-3 text-center">
+                <div class="step-card p-3">
+                    <div class="step-number">1</div>
+                    <i class="fas fa-plane step-icon"></i>
+                    <h5>Select Aircraft Model</h5>
+                    <p>Choose from Boeing 737, Cessna 172, or Airbus H125</p>
+                </div>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="step-card p-3">
+                    <div class="step-number">2</div>
+                    <i class="fas fa-user-friends step-icon"></i>
+                    <h5>Enter Flight Details</h5>
+                    <p>Provide owner, pilot, and management information</p>
+                </div>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="step-card p-3">
+                    <div class="step-number">3</div>
+                    <i class="fas fa-clipboard-list step-icon"></i>
+                    <h5>Complete Survey</h5>
+                    <p>Answer technical questions about aircraft condition</p>
+                </div>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="step-card p-3">
+                    <div class="step-number">4</div>
+                    <i class="fas fa-chart-line step-icon"></i>
+                    <h5>Get Prediction</h5>
+                    <p>Receive AI-powered safety assessment with explanations</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aircraft Models Selection -->
+    <h2 class="text-center mb-4">Select Your Aircraft Model</h2>
+    <p class="text-center mb-5">Click on any model to start the prediction process</p>
+
+    <div class="row">
+        <!-- Boeing 737 -->
+        <div class="col-md-4 mb-4">
+            <div class="card model-card h-100 shadow-lg" onclick="selectModel('boeing_737')" style="cursor: pointer;">
+                <img src="{{ url_for('static', filename='images/boeing_737.jpg') }}" 
+                     class="card-img-top" alt="Boeing 737 NG" 
+                     onerror="this.src='https://images.unsplash.com/photo-1578979879663-4ba6a968a50a?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80'">
+                <div class="card-body text-center">
+                    <h3 class="card-title text-primary">{{ boeing_config.aircraft_model }}</h3>
+                    <h6 class="text-muted">{{ boeing_config.type }}</h6>
+                    <p class="card-text">{{ boeing_config.engine_model }}</p>
+                    
+                    <div class="model-specs">
+                        <p><i class="fas fa-users"></i> Max Passengers: {{ boeing_config.max_passengers }}</p>
+                        <p><i class="fas fa-tachometer-alt"></i> Cruise Speed: {{ boeing_config.cruise_speed }}</p>
+                        <p><i class="fas fa-road"></i> Max Range: {{ boeing_config.max_range }}</p>
+                    </div>
+                    
+                    <button class="btn btn-primary btn-lg mt-3">
+                        <i class="fas fa-rocket"></i> Predict Safety
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cessna 172 -->
+        <div class="col-md-4 mb-4">
+            <div class="card model-card h-100 shadow-lg" onclick="selectModel('cessna_172')" style="cursor: pointer;">
+                <img src="{{ url_for('static', filename='images/cessna_172.jpg') }}" 
+                     class="card-img-top" alt="Cessna 172" 
+                     onerror="this.src='https://images.unsplash.com/photo-1540962351505-15f8b5c04923?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80'">
+                <div class="card-body text-center">
+                    <h3 class="card-title text-primary">{{ cessna_config.aircraft_model }}</h3>
+                    <h6 class="text-muted">{{ cessna_config.type }}</h6>
+                    <p class="card-text">{{ cessna_config.engine_model }}</p>
+                    
+                    <div class="model-specs">
+                        <p><i class="fas fa-users"></i> Max Passengers: {{ cessna_config.max_passengers }}</p>
+                        <p><i class="fas fa-tachometer-alt"></i> Cruise Speed: {{ cessna_config.cruise_speed }}</p>
+                        <p><i class="fas fa-road"></i> Max Range: {{ cessna_config.max_range }}</p>
+                    </div>
+                    
+                    <button class="btn btn-primary btn-lg mt-3">
+                        <i class="fas fa-rocket"></i> Predict Safety
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Airbus H125 -->
+        <div class="col-md-4 mb-4">
+            <div class="card model-card h-100 shadow-lg" onclick="selectModel('airbus_h125')" style="cursor: pointer;">
+                <img src="{{ url_for('static', filename='images/airbus_h125.jpg') }}" 
+                     class="card-img-top" alt="Airbus H125" 
+                     onerror="this.src='https://images.unsplash.com/photo-1508610048659-a06b669e3321?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80'">
+                <div class="card-body text-center">
+                    <h3 class="card-title text-primary">{{ airbus_config.aircraft_model }}</h3>
+                    <h6 class="text-muted">{{ airbus_config.type }}</h6>
+                    <p class="card-text">{{ airbus_config.engine_model }}</p>
+                    
+                    <div class="model-specs">
+                        <p><i class="fas fa-users"></i> Max Passengers: {{ airbus_config.max_passengers }}</p>
+                        <p><i class="fas fa-tachometer-alt"></i> Cruise Speed: {{ airbus_config.cruise_speed }}</p>
+                        <p><i class="fas fa-road"></i> Max Range: {{ airbus_config.max_range }}</p>
+                    </div>
+                    
+                    <button class="btn btn-primary btn-lg mt-3">
+                        <i class="fas fa-rocket"></i> Predict Safety
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prediction Conditions -->
+    <div class="prediction-conditions mt-5 pt-5 border-top">
+        <h3 class="text-center mb-4">Prediction Results Will Show 3 Conditions:</h3>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="condition-card condition-good p-4 text-center">
+                    <div class="condition-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h4 class="mt-3">1. Working Good</h4>
+                    <p class="mb-0">All systems normal. Aircraft is safe to fly.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="condition-card condition-warning p-4 text-center">
+                    <div class="condition-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h4 class="mt-3">2. Working with Issues</h4>
+                    <p class="mb-0">Some failures detected. Requires attention before next flight.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="condition-card condition-critical p-4 text-center">
+                    <div class="condition-icon">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <h4 class="mt-3">3. Not Working</h4>
+                    <p class="mb-0">Critical failures. Aircraft should NOT fly.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function selectModel(modelName) {
+    window.location.href = `/select-model/${modelName}`;
+}
+</script>
+
+<style>
+.model-card {
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+}
+.model-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;
+}
+.model-card img {
+    height: 200px;
+    object-fit: cover;
+}
+.model-specs {
+    text-align: left;
+    margin: 15px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+.model-specs p {
+    margin-bottom: 5px;
+    color: #666;
+}
+.step-card {
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    transition: all 0.3s;
+}
+.step-card:hover {
+    border-color: #0d6efd;
+    background: #f8f9fa;
+}
+.step-number {
+    width: 40px;
+    height: 40px;
+    background: #0d6efd;
+    color: white;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+.step-icon {
+    font-size: 2rem;
+    color: #0d6efd;
+    margin-bottom: 15px;
+}
+.condition-card {
+    border-radius: 15px;
+    transition: transform 0.3s;
+}
+.condition-card:hover {
+    transform: scale(1.05);
+}
+.condition-good {
+    background: linear-gradient(135deg, #d4edda, #c3e6cb);
+    border: 2px solid #28a745;
+}
+.condition-warning {
+    background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+    border: 2px solid #ffc107;
+}
+.condition-critical {
+    background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+    border: 2px solid #dc3545;
+}
+.condition-icon {
+    font-size: 3rem;
+}
+.condition-good .condition-icon {
+    color: #28a745;
+}
+.condition-warning .condition-icon {
+    color: #ffc107;
+}
+.condition-critical .condition-icon {
+    color: #dc3545;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,58 @@
+```gitignore
+# Python virtual environment
+venv/
+env/
+ENV/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Database
+*.db
+*.sqlite3
+
+# Environment variables
+.env
+.env.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Uploads
+uploads/
+data/uploads/
+
+# Models (large files)
+*.h5
+*.hdf5
+*.onnx
+*.trt
+*.pb
+*.pkl
+
+# Jupyter notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Test coverage
+htmlcov/
+.coverage
+
+# Distribution
+dist/
+build/
+*.egg-info/

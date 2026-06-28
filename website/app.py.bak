@@ -1,0 +1,141 @@
+"""
+Main Flask Application for Aircraft Predictive Maintenance Website
+"""
+# ADD THIS LINE AT THE VERY TOP:
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from flask import Flask, render_template, flash, redirect, url_for, session, jsonify
+from flask_sqlalchemy import SQLAlchemy
+from flask_mail import Mail
+from flask_login import LoginManager
+from flask_bootstrap import Bootstrap
+from flask_moment import Moment
+from datetime import datetime
+import json
+
+# COMMENT OUT ML MODEL IMPORTS - YOU DON'T NEED THESE TO RUN THE WEBSITE
+# from models.hybrid_cnn_transformer import MultiModalHybridModel, MultiClassFaultClassifier
+# from xai.shap_explainer import SHAPExplainer
+# from xai.lime_explainer import LIMEExplainer
+
+# Initialize Flask app
+app = Flask(__name__)
+
+# Configuration
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or 'dev-key-12345-change-in-production'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or 'sqlite:///aircraft_pm.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Email configuration (COMMENT OUT if not using email)
+# app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+# app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
+# app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'true').lower() in ['true', 'on', '1']
+# app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+# app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+# app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@aircraft-pm.com')
+
+# Initialize extensions
+db = SQLAlchemy(app)
+# mail = Mail(app)  # COMMENT OUT if not using email
+bootstrap = Bootstrap(app)
+moment = Moment(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+login_manager.login_message_category = 'info'
+
+# Load aircraft configurations
+try:
+    with open('aircraft_configs/boeing_737_ng.json', 'r') as f:
+        BOEING_CONFIG = json.load(f)
+    with open('aircraft_configs/cessna_172.json', 'r') as f:
+        CESSNA_CONFIG = json.load(f)
+    with open('aircraft_configs/airbus_h125.json', 'r') as f:
+        AIRBUS_CONFIG = json.load(f)
+    print("✅ Aircraft configurations loaded")
+except Exception as e:
+    print(f"⚠️ Warning: Could not load config files: {e}")
+    # Default configs
+    BOEING_CONFIG = {"aircraft_model": "Boeing 737 NG", "type": "Commercial Jet"}
+    CESSNA_CONFIG = {"aircraft_model": "Cessna 172", "type": "Light Aircraft"}
+    AIRBUS_CONFIG = {"aircraft_model": "Airbus H125", "type": "Helicopter"}
+# ADD THESE 3 LINES:
+app.config['BOEING_CONFIG'] = BOEING_CONFIG
+app.config['CESSNA_CONFIG'] = CESSNA_CONFIG
+app.config['AIRBUS_CONFIG'] = AIRBUS_CONFIG
+
+# COMMENT OUT ML MODEL LOADING FUNCTION
+# ml_model = None
+# fault_classifier = None
+
+# def load_ml_model():
+#     """Lazy loading of ML model"""
+#     global ml_model, fault_classifier
+#     if ml_model is None:
+#         try:
+#             ml_model = MultiModalHybridModel(
+#                 input_shape=[(1000, 1), (500, 1), (250, 1), (100, 1)],
+#                 num_classes=16
+#             )
+#             ml_model.load("results/models/final_model.h5")
+#             fault_classifier = MultiClassFaultClassifier(num_fault_classes=16)
+#             print("✅ ML model loaded successfully")
+#         except Exception as e:
+#             print(f"❌ Error loading ML model: {e}")
+#             # Create dummy model for development
+#             ml_model = None
+#     
+#     return ml_model, fault_classifier
+
+# Import models AFTER db is initialized
+from website.models import User, PredictionResult
+
+@login_manager.user_loader
+def load_user(user_id):
+    """Load user by ID"""
+    return User.query.get(int(user_id))
+
+@app.context_processor
+def inject_now():
+    """Inject current datetime into templates"""
+    return {'now': datetime.utcnow()}
+
+@app.errorhandler(404)
+def page_not_found(e):
+    """404 error handler"""
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    """500 error handler"""
+    return render_template('500.html'), 500
+
+if __name__ == '__main__':
+    # Create necessary directories
+    os.makedirs('website/static/images', exist_ok=True)
+    os.makedirs('website/static/css', exist_ok=True)
+    os.makedirs('website/static/js', exist_ok=True)
+    os.makedirs('logs', exist_ok=True)
+    os.makedirs('data', exist_ok=True)
+    
+    # Create database tables
+    with app.app_context():
+        db.create_all()
+        print("✅ Database tables created")
+    
+    # Import routes INSIDE the app context and BEFORE running
+    with app.app_context():
+        from website.routes import *
+        print("✅ Routes loaded successfully")
+    
+    print("\n" + "="*60)
+    print("✅ AIRCRAFT PREDICTIVE MAINTENANCE SYSTEM")
+    print("="*60)
+    print("🚀 Server starting...")
+    print("📱 Open: http://localhost:5000")
+    print("="*60 + "\n")
+    
+    # Run the app
+    with app.app_context():
+        app.run(debug=True, host='127.0.0.1', port=5000)

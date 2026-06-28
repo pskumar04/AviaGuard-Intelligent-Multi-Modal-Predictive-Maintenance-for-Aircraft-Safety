@@ -1,0 +1,18 @@
+timestamp,aircraft_id,sensor_location,pressure_psi,temp_c,flow_rate_lpm,condition
+2024-01-01 00:00:00,B737-001,hydraulic_system,2950,45,22.5,normal
+2024-01-01 00:00:01,B737-001,hydraulic_system,2960,45,22.6,normal
+2024-01-01 00:00:02,B737-001,hydraulic_system,2970,46,22.7,normal
+2024-01-01 00:00:03,B737-001,hydraulic_system,2850,48,21.5,warning
+2024-01-01 00:00:04,B737-001,hydraulic_system,2700,52,19.8,warning
+2024-01-01 00:00:05,B737-001,hydraulic_system,2450,58,16.2,critical
+2024-01-01 00:00:00,B737-001,oil_system,65,75,8.5,normal
+2024-01-01 00:00:01,B737-001,oil_system,64,76,8.4,normal
+2024-01-01 00:00:02,B737-001,oil_system,63,77,8.3,normal
+2024-01-01 00:00:03,B737-001,oil_system,55,82,7.2,warning
+2024-01-01 00:00:04,B737-001,oil_system,42,95,5.5,warning
+2024-01-01 00:00:05,B737-001,oil_system,28,108,3.8,critical
+2024-01-01 00:00:00,B737-001,fuel_system,45,25,12.5,normal
+2024-01-01 00:00:01,B737-001,fuel_system,44,25,12.4,normal
+2024-01-01 00:00:02,B737-001,fuel_system,43,26,12.3,normal
+2024-01-01 00:00:03,B737-001,fuel_system,38,28,10.8,warning
+2024-01-01 00:00:04,B737-001,fuel_system,30,32,8.5,critical

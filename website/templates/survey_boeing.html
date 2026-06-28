@@ -1,0 +1,498 @@
+{% extends "base.html" %}
+
+{% set is_disabled = is_disabled|default(false) %}
+
+{% block title %}Boeing 737 Survey{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Progress Bar -->
+            <div class="progress-container mb-5">
+                <div class="progress" style="height: 10px;">
+                    <div class="progress-bar bg-success" style="width: 50%"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <span class="text-success"><i class="fas fa-check-circle"></i> Model Selected</span>
+                    <span class="text-success"><i class="fas fa-check-circle"></i> Flight Details</span>
+                    <span class="text-primary"><strong><i class="fas fa-clipboard-list"></i> Technical Survey</strong></span>
+                    <span class="text-muted"><i class="fas fa-chart-line"></i> Prediction</span>
+                </div>
+            </div>
+
+            <!-- Page Header -->
+            <div class="page-header text-center mb-4">
+                <h1 class="display-5">
+                    <i class="fas fa-clipboard-list text-primary"></i> Boeing 737 Technical Survey
+                </h1>
+                <p class="lead">Please provide current readings and condition information</p>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> 
+                    Provide accurate current readings for precise prediction. Normal ranges are shown for reference.
+                </div>
+            </div>
+
+            <!-- Survey Form -->
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('survey_boeing_737') }}">
+                        <!-- Add this after the form opening tag -->
+                        {% if is_disabled %}
+                        <div class="alert alert-warning mb-4">
+                            <i class="fas fa-info-circle"></i> 
+                            <strong>Survey already completed!</strong> The data below has been saved and cannot be modified.
+                            To update this survey, please contact the administrator.
+                        </div>
+                        {% endif %}
+                        {{ form.hidden_tag() }}
+
+                        <!-- Engine Parameters -->
+                        <fieldset class="mb-5">
+                            <legend class="border-bottom pb-2 mb-4">
+                                <i class="fas fa-engine text-danger"></i> Engine Parameters (CFM56-7B)
+                            </legend>
+                            
+                            <div class="row">
+                                <!-- N1 RPM -->
+                                <div class="col-md-6 mb-4">
+                                    <div class="parameter-card">
+                                        <div class="parameter-header">
+                                            <h5>{{ form.n1_rpm.label.text }}</h5>
+                                            <span class="badge bg-info">Normal: 95-101%</span>
+                                        </div>
+                                        <div class="input-group">
+                                            {{ form.n1_rpm(class="form-control form-control-lg", 
+                                                placeholder="e.g., 98.5",
+                                                value=existing_data.get('n1_rpm', normal_data.get('vib_engine_vibration', 98.5)),
+                                                readonly=is_disabled,
+                                                disabled=is_disabled) }}
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                        <small class="form-text text-muted">{{ form.n1_rpm.description }}</small>
+                                        {% if form.n1_rpm.errors %}
+                                            <div class="text-danger">
+                                                {% for error in form.n1_rpm.errors %}
+                                                    <small>{{ error }}</small>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- N2 RPM -->
+                                <div class="col-md-6 mb-4">
+                                    <div class="parameter-card">
+                                        <div class="parameter-header">
+                                            <h5>{{ form.n2_rpm.label.text }}</h5>
+                                            <span class="badge bg-info">Normal: 98-102%</span>
+                                        </div>
+                                        <div class="input-group">
+                                            {{ form.n2_rpm(class="form-control form-control-lg", 
+                                                placeholder="e.g., 100.2",
+                                                value=existing_data.get('n2_rpm', normal_data.get('vib_engine_vibration', 100.2)),
+                                                readonly=is_disabled,
+                                                disabled=is_disabled) }}                                      
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                        <small class="form-text text-muted">{{ form.n2_rpm.description }}</small>
+                                        {% if form.n2_rpm.errors %}
+                                            <div class="text-danger">
+                                                {% for error in form.n2_rpm.errors %}
+                                                    <small>{{ error }}</small>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- EGT -->
+                                <div class="col-md-6 mb-4">
+                                    <div class="parameter-card">
+                                        <div class="parameter-header">
+                                            <h5>{{ form.egt.label.text }}</h5>
+                                            <span class="badge bg-info">Normal: 400-650°C</span>
+                                        </div>
+                                        <div class="input-group">
+                                            {{ form.egt(class="form-control form-control-lg", 
+                                                placeholder="e.g., 550",
+                                                value=existing_data.get('egt', normal_data.get('thermal_egt', 550)),
+                                                readonly=is_disabled,
+                                                disabled=is_disabled) }}
+                                            <span class="input-group-text">°C</span>
+                                        </div>
+                                        <small class="form-text text-muted">{{ form.egt.description }}</small>
+                                        {% if form.egt.errors %}
+                                            <div class="text-danger">
+                                                {% for error in form.egt.errors %}
+                                                    <small>{{ error }}</small>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Oil Temperature -->
+                                <div class="col-md-6 mb-4">
+                                    <div class="parameter-card">
+                                        <div class="parameter-header">
+                                            <h5>{{ form.oil_temperature.label.text }}</h5>
+                                            <span class="badge bg-info">Normal: 60-110°C</span>
+                                        </div>
+                                        <div class="input-group">
+                                            {{ form.oil_temperature(class="form-control form-control-lg", 
+                                                placeholder="e.g., 85",
+                                                value=existing_data.get('oil_temperature', normal_data.get('thermal_oil_temperature', 85)),
+                                                readonly=is_disabled,
+                                                disabled=is_disabled) }}
+                                            <span class="input-group-text">°C</span>
+                                        </div>
+                                        <small class="form-text text-muted">{{ form.oil_temperature.description }}</small>
+                                        {% if form.oil_temperature.errors %}
+                                            <div class="text-danger">
+                                                {% for error in form.oil_temperature.errors %}
+                                                    <small>{{ error }}</small>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Oil Pressure -->
+                                <div class="col-md-6 mb-4">
+                                    <div class="parameter-card">
+                                        <div class="parameter-header">
+                                            <h5>{{ form.oil_pressure.label.text }}</h5>
+                                            <span class="badge bg-info">Normal: 40-80 PSI</span>
+                                        </div>
+                                        <div class="input-group">
+                                            {{ form.oil_pressure(class="form-control form-control-lg", 
+                                                placeholder="e.g., 60",
+                                                value=existing_data.get('oil_pressure', normal_data.get('pressure_oil_pressure', 60)),
+                                                readonly=is_disabled,
+                                                disabled=is_disabled) }}
+                                            <span class="input-group-text">PSI</span>
+                                        </div>
+                                        <small class="form-text text-muted">{{ form.oil_pressure.description }}</small>
+                                        {% if form.oil_pressure.errors %}
+                                            <div class="text-danger">
+                                                {% for error in form.oil_pressure.errors %}
+                                                    <small>{{ error }}</small>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Vibration Level -->
+                                <div class="col-md-6 mb-4">
+                                    <div class="parameter-card">
+                                        <div class="parameter-header">
+                                            <h5>{{ form.vibration_level.label.text }}</h5>
+                                            <span class="badge bg-info">Normal: 0-0.5 ips</span>
+                                        </div>
+                                        <div class="input-group">
+                                            {{ form.vibration_level(class="form-control form-control-lg", 
+                                                placeholder="e.g., 0.3",
+                                                value=existing_data.get('vibration_level', normal_data.get('vib_engine_vibration', 0.3)),
+                                                readonly=is_disabled,
+                                                disabled=is_disabled) }}
+                                            <span class="input-group-text">ips</span>
+                                        </div>
+                                        <small class="form-text text-muted">{{ form.vibration_level.description }}</small>
+                                        {% if form.vibration_level.errors %}
+                                            <div class="text-danger">
+                                                {% for error in form.vibration_level.errors %}
+                                                    <small>{{ error }}</small>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <!-- Structural Parameters -->
+                        <fieldset class="mb-5">
+                            <legend class="border-bottom pb-2 mb-4">
+                                <i class="fas fa-mountain text-success"></i> Structural Parameters
+                            </legend>
+                            
+                            <div class="row">
+                                <!-- Wing Vibration -->
+                                <div class="col-md-6 mb-4">
+                                    <div class="parameter-card">
+                                        <div class="parameter-header">
+                                            <h5>{{ form.wing_vibration.label.text }}</h5>
+                                            <span class="badge bg-info">Normal: 0-0.3g</span>
+                                        </div>
+                                        <div class="input-group">
+                                            {{ form.wing_vibration(class="form-control form-control-lg", 
+                                                placeholder="e.g., 0.15",
+                                                value=existing_data.get('wing_vibration', normal_data.get('vib_airframe_vibration', 0.15)),
+                                                readonly=is_disabled,
+                                                disabled=is_disabled) }}
+                                            <span class="input-group-text">g</span>
+                                        </div>
+                                        <small class="form-text text-muted">{{ form.wing_vibration.description }}</small>
+                                        {% if form.wing_vibration.errors %}
+                                            <div class="text-danger">
+                                                {% for error in form.wing_vibration.errors %}
+                                                    <small>{{ error }}</small>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Fuselage Strain -->
+                                <div class="col-md-6 mb-4">
+                                    <div class="parameter-card">
+                                        <div class="parameter-header">
+                                            <h5>{{ form.fuselage_strain.label.text }}</h5>
+                                            <span class="badge bg-info">Normal: 0-500 με</span>
+                                        </div>
+                                        <div class="input-group">
+                                            {{ form.fuselage_strain(class="form-control form-control-lg", 
+                                                placeholder="e.g., 250",
+                                                value=existing_data.get('fuselage_strain', 250),
+                                                readonly=is_disabled,
+                                                disabled=is_disabled) }}
+                                            <span class="input-group-text">με</span>
+                                        </div>
+                                        <small class="form-text text-muted">{{ form.fuselage_strain.description }}</small>
+                                        {% if form.fuselage_strain.errors %}
+                                            <div class="text-danger">
+                                                {% for error in form.fuselage_strain.errors %}
+                                                    <small>{{ error }}</small>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <!-- Systems Parameters -->
+                        <fieldset class="mb-5">
+                            <legend class="border-bottom pb-2 mb-4">
+                                <i class="fas fa-cogs text-warning"></i> Systems Parameters
+                            </legend>
+                            
+                            <div class="row">
+                                <!-- Hydraulic Pressure -->
+                                <div class="col-md-4 mb-4">
+                                    <div class="parameter-card">
+                                        <div class="parameter-header">
+                                            <h5>{{ form.hydraulic_pressure.label.text }}</h5>
+                                            <span class="badge bg-info">Normal: 2800-3200 PSI</span>
+                                        </div>
+                                        <div class="input-group">
+                                            {{ form.hydraulic_pressure(class="form-control form-control-lg", 
+                                                placeholder="e.g., 3000",
+                                                value=existing_data.get('hydraulic_pressure', normal_data.get('pressure_hydraulic_pressure', 3000)),
+                                                readonly=is_disabled,
+                                                disabled=is_disabled) }}
+                                            <span class="input-group-text">PSI</span>
+                                        </div>
+                                        <small class="form-text text-muted">{{ form.hydraulic_pressure.description }}</small>
+                                        {% if form.hydraulic_pressure.errors %}
+                                            <div class="text-danger">
+                                                {% for error in form.hydraulic_pressure.errors %}
+                                                    <small>{{ error }}</small>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Cabin Pressure Altitude -->
+                                <div class="col-md-4 mb-4">
+                                    <div class="parameter-card">
+                                        <div class="parameter-header">
+                                            <h5>{{ form.cabin_pressure_altitude.label.text }}</h5>
+                                            <span class="badge bg-info">Normal: 0-8000 ft</span>
+                                        </div>
+                                        <div class="input-group">
+                                            {{ form.cabin_pressure_altitude(class="form-control form-control-lg", 
+                                                placeholder="e.g., 5000",
+                                                value=existing_data.get('cabin_pressure_altitude', 5000),
+                                                readonly=is_disabled,
+                                                disabled=is_disabled) }}
+                                            <span class="input-group-text">ft</span>
+                                        </div>
+                                        <small class="form-text text-muted">{{ form.cabin_pressure_altitude.description }}</small>
+                                        {% if form.cabin_pressure_altitude.errors %}
+                                            <div class="text-danger">
+                                                {% for error in form.cabin_pressure_altitude.errors %}
+                                                    <small>{{ error }}</small>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Bleed Air Temperature -->
+                                <div class="col-md-4 mb-4">
+                                    <div class="parameter-card">
+                                        <div class="parameter-header">
+                                            <h5>{{ form.bleed_air_temperature.label.text }}</h5>
+                                            <span class="badge bg-info">Normal: 150-250°C</span>
+                                        </div>
+                                        <div class="input-group">
+                                            {{ form.bleed_air_temperature(class="form-control form-control-lg", 
+                                                placeholder="e.g., 200",
+                                                value=existing_data.get('bleed_air_temperature', 200),
+                                                readonly=is_disabled,
+                                                disabled=is_disabled) }}
+                                            <span class="input-group-text">°C</span>
+                                        </div>
+                                        <small class="form-text text-muted">{{ form.bleed_air_temperature.description }}</small>
+                                        {% if form.bleed_air_temperature.errors %}
+                                            <div class="text-danger">
+                                                {% for error in form.bleed_air_temperature.errors %}
+                                                    <small>{{ error }}</small>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <!-- Flight Controls -->
+                        <fieldset class="mb-5">
+                            <legend class="border-bottom pb-2 mb-4">
+                                <i class="fas fa-gamepad text-primary"></i> Flight Controls
+                            </legend>
+                            
+                            <div class="row">
+                                <!-- Aileron Position -->
+                                <div class="col-md-6 mb-4">
+                                    <div class="parameter-card">
+                                        <div class="parameter-header">
+                                            <h5>{{ form.aileron_position.label.text }}</h5>
+                                            <span class="badge bg-info">Normal: -25 to 25°</span>
+                                        </div>
+                                        <div class="input-group">
+                                            {{ form.aileron_position(class="form-control form-control-lg", 
+                                                placeholder="e.g., 0",
+                                                value=existing_data.get('aileron_position', 0),
+                                                readonly=is_disabled,
+                                                disabled=is_disabled) }}
+                                            <span class="input-group-text">°</span>
+                                        </div>
+                                        <small class="form-text text-muted">{{ form.aileron_position.description }}</small>
+                                        {% if form.aileron_position.errors %}
+                                            <div class="text-danger">
+                                                {% for error in form.aileron_position.errors %}
+                                                    <small>{{ error }}</small>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Elevator Position -->
+                                <div class="col-md-6 mb-4">
+                                    <div class="parameter-card">
+                                        <div class="parameter-header">
+                                            <h5>{{ form.elevator_position.label.text }}</h5>
+                                            <span class="badge bg-info">Normal: -20 to 20°</span>
+                                        </div>
+                                        <div class="input-group">
+                                            {{ form.elevator_position(class="form-control form-control-lg", 
+                                                placeholder="e.g., 0",
+                                                value=existing_data.get('elevator_position', 0),
+                                                readonly=is_disabled,
+                                                disabled=is_disabled) }}
+                                            <span class="input-group-text">°</span>
+                                        </div>
+                                        <small class="form-text text-muted">{{ form.elevator_position.description }}</small>
+                                        {% if form.elevator_position.errors %}
+                                            <div class="text-danger">
+                                                {% for error in form.elevator_position.errors %}
+                                                    <small>{{ error }}</small>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <!-- Form Buttons -->
+                        <div class="d-flex justify-content-between mt-5 pt-4 border-top">
+                            <a href="{{ url_for('flight_details') }}" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-arrow-left"></i> Back to Flight Details
+                            </a>
+                            {{ form.submit(class="btn btn-primary btn-lg px-5") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Prediction Information -->
+            <div class="alert alert-info mt-4">
+                <h5><i class="fas fa-lightbulb"></i> How Prediction Works</h5>
+                <p>Based on your inputs, our AI model will analyze:</p>
+                <ul>
+                    <li><strong>Current readings</strong> vs normal operating ranges</li>
+                    <li><strong>Patterns</strong> indicating potential failures</li>
+                    <li><strong>Correlations</strong> between different parameters</li>
+                    <li><strong>Historical data</strong> from similar aircraft</li>
+                </ul>
+                <p class="mb-0">Results will show one of three conditions with detailed explanations and recommendations.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.progress-container {
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+.parameter-card {
+    padding: 20px;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    height: 100%;
+    transition: all 0.3s;
+}
+.parameter-card:hover {
+    border-color: #0d6efd;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+.parameter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.parameter-header h5 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #333;
+}
+.input-group-text {
+    background: #f8f9fa;
+    font-weight: 500;
+}
+fieldset {
+    padding: 25px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 1px solid #dee2e6;
+}
+legend {
+    font-weight: 600;
+    color: #0d6efd;
+    width: auto;
+    padding: 0 15px;
+    font-size: 1.3rem;
+}
+</style>
+{% endblock %}

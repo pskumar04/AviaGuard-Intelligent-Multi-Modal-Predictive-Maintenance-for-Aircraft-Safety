@@ -1,0 +1,440 @@
+"""
+Website Routes for Aircraft Predictive Maintenance
+"""
+
+import numpy as np
+import threading
+import json
+
+from flask import render_template, redirect, url_for, flash, request, session, jsonify
+from flask_login import login_user, logout_user, login_required, current_user
+# from website import app, db, mail
+from website import db
+from website.models import User, PredictionResult
+from datetime import datetime
+
+# Get app from the current context
+from flask import current_app as app
+from website.models import User, FlightSurvey, PredictionResult
+from website.forms import (
+    LoginForm, RegistrationForm, FlightDetailsForm,
+    BoeingSurveyForm, CessnaSurveyForm, AirbusSurveyForm
+)
+from website.utils.email_sender import send_prediction_email
+from website.utils.prediction_engine import predict_flight_safety
+from website.utils.survey_processor import process_survey_data
+import json
+from datetime import datetime
+
+@app.route('/')
+def index():
+    """Home page - Welcome and model selection"""
+    return render_template('index.html', 
+                         boeing_config=app.config.get('BOEING_CONFIG', {}),
+                         cessna_config=app.config.get('CESSNA_CONFIG', {}),
+                         airbus_config=app.config.get('AIRBUS_CONFIG', {}))
+
+@app.route('/select-model/<model_name>')
+def select_model(model_name):
+    """Store selected model in session and redirect to flight details"""
+    session['selected_model'] = model_name
+    
+    # Get model configuration
+    if model_name == 'boeing_737':
+        model_config = app.BOEING_CONFIG
+    elif model_name == 'cessna_172':
+        model_config = app.CESSNA_CONFIG
+    elif model_name == 'airbus_h125':
+        model_config = app.AIRBUS_CONFIG
+    else:
+        flash('Invalid aircraft model selected', 'danger')
+        return redirect(url_for('index'))
+    
+    session['model_config'] = model_config
+    return redirect(url_for('flight_details'))
+
+@app.route('/flight-details', methods=['GET', 'POST'])
+def flight_details():
+    """Flight owner and management details form"""
+    if 'selected_model' not in session:
+        flash('Please select an aircraft model first', 'warning')
+        return redirect(url_for('index'))
+    
+    form = FlightDetailsForm()
+    
+    if form.validate_on_submit():
+        # Store flight details in session
+        session['flight_details'] = {
+            'owner_name': form.owner_name.data,
+            'owner_email': form.owner_email.data,
+            'pilot_name': form.pilot_name.data,
+            'co_pilot_name': form.co_pilot_name.data,
+            'management_team': form.management_team.data,
+            'management_email': form.management_email.data,
+            'maintenance_manager': form.maintenance_manager.data,
+            'maintenance_email': form.maintenance_email.data,
+            'flight_number': form.flight_number.data,
+            'registration_number': form.registration_number.data,
+            'total_flight_hours': form.total_flight_hours.data,
+            'last_maintenance_date': form.last_maintenance_date.data.isoformat() if form.last_maintenance_date.data else None
+        }
+        
+        # Redirect to survey based on selected model
+        model_name = session['selected_model']
+        if model_name == 'boeing_737':
+            return redirect(url_for('boeing_survey'))
+        elif model_name == 'cessna_172':
+            return redirect(url_for('cessna_survey'))
+        elif model_name == 'airbus_h125':
+            return redirect(url_for('airbus_survey'))
+    
+    # Get model name for display
+    model_name = session.get('selected_model', '').replace('_', ' ').title()
+    return render_template('flight_details.html', form=form, model_name=model_name)
+
+@app.route('/survey/boeing', methods=['GET', 'POST'])
+def boeing_survey():
+    """Boeing 737 survey questions"""
+    if 'selected_model' not in session or session['selected_model'] != 'boeing_737':
+        flash('Please select Boeing 737 model first', 'warning')
+        return redirect(url_for('index'))
+    
+    if 'flight_details' not in session:
+        flash('Please provide flight details first', 'warning')
+        return redirect(url_for('flight_details'))
+    
+    form = BoeingSurveyForm()
+    
+    if form.validate_on_submit():
+        # Process survey data
+        survey_data = {
+            'engine': {
+                'n1_rpm': form.n1_rpm.data,
+                'n2_rpm': form.n2_rpm.data,
+                'egt': form.egt.data,
+                'oil_temperature': form.oil_temperature.data,
+                'oil_pressure': form.oil_pressure.data,
+                'vibration_level': form.vibration_level.data
+            },
+            'structural': {
+                'wing_vibration': form.wing_vibration.data,
+                'fuselage_strain': form.fuselage_strain.data
+            },
+            'systems': {
+                'hydraulic_pressure': form.hydraulic_pressure.data,
+                'cabin_pressure_altitude': form.cabin_pressure_altitude.data,
+                'bleed_air_temperature': form.bleed_air_temperature.data
+            },
+            'flight_controls': {
+                'aileron_position': form.aileron_position.data,
+                'elevator_position': form.elevator_position.data
+            }
+        }
+        
+        session['survey_data'] = survey_data
+        return redirect(url_for('process_prediction'))
+    
+    return render_template('survey_boeing.html', form=form, config=app.BOEING_CONFIG)
+
+@app.route('/survey/cessna', methods=['GET', 'POST'])
+def cessna_survey():
+    """Cessna 172 survey questions"""
+    if 'selected_model' not in session or session['selected_model'] != 'cessna_172':
+        flash('Please select Cessna 172 model first', 'warning')
+        return redirect(url_for('index'))
+    
+    if 'flight_details' not in session:
+        flash('Please provide flight details first', 'warning')
+        return redirect(url_for('flight_details'))
+    
+    form = CessnaSurveyForm()
+    
+    if form.validate_on_submit():
+        # Process survey data
+        survey_data = {
+            'engine': {
+                'rpm': form.rpm.data,
+                'manifold_pressure': form.manifold_pressure.data,
+                'oil_temperature': form.oil_temperature.data,
+                'oil_pressure': form.oil_pressure.data,
+                'fuel_pressure': form.fuel_pressure.data,
+                'cylinder_head_temp': form.cylinder_head_temp.data
+            }
+        }
+        
+        session['survey_data'] = survey_data
+        return redirect(url_for('process_prediction'))
+    
+    return render_template('survey_cessna.html', form=form, config=app.CESSNA_CONFIG)
+
+@app.route('/survey/airbus', methods=['GET', 'POST'])
+def airbus_survey():
+    """Airbus H125 survey questions"""
+    if 'selected_model' not in session or session['selected_model'] != 'airbus_h125':
+        flash('Please select Airbus H125 model first', 'warning')
+        return redirect(url_for('index'))
+    
+    if 'flight_details' not in session:
+        flash('Please provide flight details first', 'warning')
+        return redirect(url_for('flight_details'))
+    
+    form = AirbusSurveyForm()
+    
+    if form.validate_on_submit():
+        # Process survey data
+        survey_data = {
+            'rotor_system': {
+                'rotor_rpm': form.rotor_rpm.data,
+                'vibration_level': form.vibration_level.data,
+                'track_and_balance': form.track_and_balance.data
+            },
+            'engine': {
+                'torque': form.torque.data,
+                'ng': form.ng.data,
+                't4': form.t4.data
+            }
+        }
+        
+        session['survey_data'] = survey_data
+        return redirect(url_for('process_prediction'))
+    
+    return render_template('survey_airbus.html', form=form, config=app.AIRBUS_CONFIG)
+
+@app.route('/process-prediction')
+def process_prediction():
+    """Process prediction with loading screen"""
+    return render_template('processing.html')
+
+@app.route('/api/predict', methods=['POST'])
+def api_predict():
+    """API endpoint for prediction processing"""
+    try:
+        # Get data from session
+        flight_details = session.get('flight_details', {})
+        survey_data = session.get('survey_data', {})
+        model_name = session.get('selected_model', '')
+        
+        if not flight_details or not survey_data:
+            return jsonify({'error': 'Missing data'}), 400
+        
+        # Process survey data for ML model
+        processed_data = process_survey_data(survey_data, model_name)
+        
+        # Get ML model prediction
+        # Use rule-based prediction (ML models are disabled for now)
+        prediction, fault_results = predict_flight_safety(survey_data, model_name)
+        # ml_model, classifier = app.load_ml_model()
+        
+        # if ml_model:
+        #     # Prepare input for model (simplified for demonstration)
+        #     vibration_data = np.random.randn(1, 1000, 1)
+        #     thermal_data = np.random.randn(1, 500, 1)
+        #     acoustic_data = np.random.randn(1, 250, 1)
+        #     pressure_data = np.random.randn(1, 100, 1)
+            
+        #     # Make prediction
+        #     prediction = ml_model.predict(
+        #         vibration_data, thermal_data, acoustic_data, pressure_data
+        #     )
+            
+        #     # Use classifier for fault detection
+        #     fault_results = classifier.predict_with_confidence(
+        #         ml_model.model,
+        #         [vibration_data, thermal_data, acoustic_data, pressure_data],
+        #         threshold=0.7
+        #     )
+        # else:
+        #     # Fallback to rule-based prediction
+        #     prediction, fault_results = predict_flight_safety(survey_data, model_name)
+        
+        # Determine flight condition
+        condition = determine_flight_condition(prediction, fault_results)
+        
+        # Generate XAI explanations
+        xai_explanations = generate_xai_explanations(processed_data, model_name)
+        
+        # Create prediction result
+        prediction_result = PredictionResult(
+            model_type=model_name,
+            flight_number=flight_details.get('flight_number', 'N/A'),
+            registration_number=flight_details.get('registration_number', 'N/A'),
+            survey_data=json.dumps(survey_data),
+            prediction_result=json.dumps(prediction),
+            fault_detections=json.dumps(fault_results),
+            flight_condition=condition,
+            confidence_score=prediction.get('confidence', 0.85),
+            owner_email=flight_details.get('owner_email'),
+            management_email=flight_details.get('management_email'),
+            maintenance_email=flight_details.get('maintenance_email')
+        )
+        
+        db.session.add(prediction_result)
+        db.session.commit()
+        
+        # Store result ID in session
+        session['prediction_id'] = prediction_result.id
+        
+        # Send emails (async)
+        send_emails_async(prediction_result, flight_details, condition)
+        
+        return jsonify({
+            'success': True,
+            'prediction_id': prediction_result.id,
+            'condition': condition,
+            'redirect_url': url_for('prediction_result', prediction_id=prediction_result.id)
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Prediction error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/prediction-result/<int:prediction_id>')
+def prediction_result(prediction_id):
+    """Display prediction results"""
+    prediction = PredictionResult.query.get_or_404(prediction_id)
+    
+    # Parse JSON data
+    prediction_data = json.loads(prediction.prediction_result)
+    fault_detections = json.loads(prediction.fault_detections)
+    
+    # Generate explanation text based on condition
+    explanation = generate_explanation(prediction.flight_condition, fault_detections)
+    
+    return render_template('prediction.html',
+                         prediction=prediction,
+                         prediction_data=prediction_data,
+                         fault_detections=fault_detections,
+                         explanation=explanation)
+
+@app.route('/email-preview/<int:prediction_id>')
+def email_preview(prediction_id):
+    """Preview email that was sent"""
+    prediction = PredictionResult.query.get_or_404(prediction_id)
+    return render_template('email_template.html', prediction=prediction)
+
+# Helper functions
+def determine_flight_condition(prediction, fault_results):
+    """Determine flight condition based on prediction and faults"""
+    total_faults = fault_results.get('total_faults', 0)
+    critical_faults = fault_results.get('critical_faults', 0)
+    confidence = prediction.get('confidence', 0)
+    
+    if critical_faults > 0 or confidence < 0.6:
+        return 'critical'  # Flight is not working
+    elif total_faults > 0 or confidence < 0.8:
+        return 'warning'   # Working but has some failures
+    else:
+        return 'normal'    # Working good
+
+def generate_xai_explanations(data, model_name):
+    """Generate XAI explanations for the prediction"""
+    # Load XAI explainers
+    try:
+        shap_explainer = SHAPExplainer(None)  # In real app, pass actual model
+        lime_explainer = LIMEExplainer(None)
+        
+        # Generate explanations (simplified)
+        explanations = {
+            'shap': {
+                'feature_importance': [],
+                'summary': 'Model prediction based on sensor data analysis'
+            },
+            'lime': {
+                'local_explanations': [],
+                'summary': 'Local interpretability for this specific flight'
+            }
+        }
+        
+        return explanations
+    except:
+        return {}
+
+def generate_explanation(condition, fault_detections):
+    """Generate human-readable explanation"""
+    explanations = {
+        'normal': {
+            'title': '✅ Flight is SAFE to fly',
+            'description': 'All systems are operating within normal parameters. No critical faults detected.',
+            'recommendation': 'Flight is approved for operation. Continue with regular maintenance schedule.',
+            'color': 'success'
+        },
+        'warning': {
+            'title': '⚠️ Flight has SOME ISSUES',
+            'description': f"Detected {fault_detections.get('total_faults', 0)} potential issues. "
+                          f"{fault_detections.get('critical_faults', 0)} require immediate attention.",
+            'recommendation': 'Schedule maintenance before next flight. Some systems need inspection.',
+            'color': 'warning'
+        },
+        'critical': {
+            'title': '❌ Flight is NOT SAFE to fly',
+            'description': f"Detected {fault_detections.get('total_faults', 0)} critical issues. "
+                          f"Immediate maintenance required.",
+            'recommendation': 'DO NOT FLY. Ground aircraft immediately and perform thorough inspection.',
+            'color': 'danger'
+        }
+    }
+    
+    return explanations.get(condition, explanations['critical'])
+
+def send_emails_async(prediction_result, flight_details, condition):
+    """Send emails asynchronously"""
+    thread = threading.Thread(
+        target=send_prediction_email,
+        args=(prediction_result, flight_details, condition)
+    )
+    thread.daemon = True
+    thread.start()
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """User login"""
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user and user.check_password(form.password.data):
+            login_user(user, remember=form.remember.data)
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('index'))
+        else:
+            flash('Login unsuccessful. Please check email and password', 'danger')
+    
+    return render_template('login.html', form=form)
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    """User registration"""
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        user = User(
+            username=form.username.data,
+            email=form.email.data,
+            role=form.role.data
+        )
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash('Your account has been created! You can now log in', 'success')
+        return redirect(url_for('login'))
+    
+    return render_template('register.html', form=form)
+
+@app.route('/logout')
+def logout():
+    """User logout"""
+    logout_user()
+    return redirect(url_for('index'))
+
+@app.route('/history')
+@login_required
+def history():
+    """View prediction history"""
+    predictions = PredictionResult.query.order_by(
+        PredictionResult.timestamp.desc()
+    ).limit(50).all()
+    return render_template('history.html', predictions=predictions)

@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Aircraft Predictive Maintenance{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-5">
+                    <div class="text-center mb-5">
+                        <h1 class="display-5">
+                            <i class="fas fa-sign-in-alt text-primary"></i> Login
+                        </h1>
+                        <p class="lead">Access your aircraft predictive maintenance account</p>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('login') }}">
+                        {{ form.hidden_tag() }}
+
+                        <!-- Email Field -->
+                        <div class="mb-4">
+                            {{ form.email.label(class="form-label") }}
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-envelope"></i>
+                                </span>
+                                {{ form.email(class="form-control form-control-lg", placeholder="Enter your email") }}
+                            </div>
+                            {% if form.email.errors %}
+                                <div class="text-danger mt-2">
+                                    {% for error in form.email.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Password Field -->
+                        <div class="mb-4">
+                            {{ form.password.label(class="form-label") }}
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                                {{ form.password(class="form-control form-control-lg", placeholder="Enter your password") }}
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            {% if form.password.errors %}
+                                <div class="text-danger mt-2">
+                                    {% for error in form.password.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Remember Me -->
+                        <div class="mb-4 form-check">
+                            {{ form.remember(class="form-check-input") }}
+                            {{ form.remember.label(class="form-check-label") }}
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid gap-2 mb-4">
+                            {{ form.submit(class="btn btn-primary btn-lg") }}
+                        </div>
+
+                        <!-- Forgot Password -->
+                        <div class="text-center mb-4">
+                            <a href="#" class="text-decoration-none">Forgot your password?</a>
+                        </div>
+
+                        <!-- Divider -->
+                        <div class="position-relative my-4">
+                            <hr>
+                            <div class="position-absolute top-50 start-50 translate-middle bg-white px-3">
+                                <span class="text-muted">or</span>
+                            </div>
+                        </div>
+
+                        <!-- Register Link -->
+                        <div class="text-center">
+                            <p class="mb-0">Don't have an account?
+                                <a href="{{ url_for('register') }}" class="text-decoration-none fw-bold">
+                                    Register here
+                                </a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Information -->
+            <div class="alert alert-info mt-4">
+                <h5><i class="fas fa-info-circle"></i> About Accounts</h5>
+                <ul class="mb-0">
+                    <li>Operators can submit predictions and view history</li>
+                    <li>Maintenance technicians receive detailed fault reports</li>
+                    <li>Viewers can only view prediction results</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Toggle password visibility
+    $('#togglePassword').click(function() {
+        const passwordInput = $('#password');
+        const type = passwordInput.attr('type') === 'password' ? 'text' : 'password';
+        passwordInput.attr('type', type);
+        $(this).find('i').toggleClass('fa-eye fa-eye-slash');
+    });
+
+    // Form validation
+    $('form').on('submit', function(e) {
+        const email = $('#email').val();
+        const password = $('#password').val();
+
+        if (!email || !password) {
+            e.preventDefault();
+            showAlert('Please fill in all fields', 'warning');
+        }
+    });
+});
+
+function showAlert(message, type) {
+    const alert = $(`
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `);
+    $('.card-body').prepend(alert);
+}
+</script>
+{% endblock %}

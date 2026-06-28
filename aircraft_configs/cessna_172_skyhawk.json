@@ -1,0 +1,21 @@
+{
+  "real_sensor_ranges": {
+    "vibration": {
+      "engine_vibration": {"min": 0.1, "max": 0.8, "critical_min": 1.0, "critical_max": 1.5, "unit": "g RMS", "warning": "0.8-1.0"},
+      "propeller_vibration": {"min": 0.05, "max": 0.4, "critical_min": 0.5, "critical_max": 0.8, "unit": "g RMS", "warning": "0.4-0.5"}
+    },
+    "thermal": {
+      "cylinder_head_temp": {"min": 200, "max": 450, "critical_min": 450, "critical_max": 500, "unit": "°F", "warning": "450-475"},
+      "oil_temperature": {"min": 100, "max": 220, "critical_min": 220, "critical_max": 245, "unit": "°F", "warning": "220-235"},
+      "exhaust_gas_temp": {"min": 1200, "max": 1400, "critical_min": 1400, "critical_max": 1500, "unit": "°F", "warning": "1400-1450"}
+    },
+    "acoustic": {
+      "engine_acoustic": {"min": 70, "max": 90, "critical_min": 95, "critical_max": 110, "unit": "dB", "warning": "90-95"},
+      "propeller_acoustic": {"min": 75, "max": 85, "critical_min": 88, "critical_max": 95, "unit": "dB", "warning": "85-88"}
+    },
+    "pressure": {
+      "oil_pressure": {"min": 20, "max": 60, "critical_min": 15, "critical_max": 70, "unit": "PSI", "warning": "15-20 or 60-65"},
+      "fuel_pressure": {"min": 0.5, "max": 8, "critical_min": 0.2, "critical_max": 10, "unit": "PSI", "warning": "0.2-0.5 or 8-9"}
+    }
+  }
+}

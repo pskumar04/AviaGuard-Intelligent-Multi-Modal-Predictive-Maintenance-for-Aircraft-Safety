@@ -1,0 +1,429 @@
+{% extends "base.html" %}
+
+{% block title %}Prediction History - Aircraft Predictive Maintenance{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Page Header -->
+    <div class="page-header mb-5">
+        <h1 class="display-4">
+            <i class="fas fa-history text-primary"></i> Prediction History
+        </h1>
+        <p class="lead">View all your previous aircraft safety predictions</p>
+        
+        <!-- Stats Overview -->
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <div class="stat-card bg-primary text-white p-3 rounded">
+                    <h2 class="display-6">{{ predictions|length }}</h2>
+                    <p class="mb-0">Total Predictions</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card bg-success text-white p-3 rounded">
+                    <h2 class="display-6">{{ predictions|selectattr('flight_condition', 'equalto', 'normal')|list|length }}</h2>
+                    <p class="mb-0">Safe Flights</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card bg-warning text-white p-3 rounded">
+                    <h2 class="display-6">{{ predictions|selectattr('flight_condition', 'equalto', 'warning')|list|length }}</h2>
+                    <p class="mb-0">Warnings</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card bg-danger text-white p-3 rounded">
+                    <h2 class="display-6">{{ predictions|selectattr('flight_condition', 'equalto', 'critical')|list|length }}</h2>
+                    <p class="mb-0">Critical</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Aircraft Model</label>
+                    <select class="form-select" id="filterModel">
+                        <option value="">All Models</option>
+                        <option value="boeing_737">Boeing 737</option>
+                        <option value="cessna_172">Cessna 172</option>
+                        <option value="airbus_h125">Airbus H125</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Condition</label>
+                    <select class="form-select" id="filterCondition">
+                        <option value="">All Conditions</option>
+                        <option value="normal">Safe</option>
+                        <option value="warning">Warning</option>
+                        <option value="critical">Critical</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Date From</label>
+                    <input type="date" class="form-control" id="filterDateFrom">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Date To</label>
+                    <input type="date" class="form-control" id="filterDateTo">
+                </div>
+                <div class="col-md-12">
+                    <div class="d-flex justify-content-between">
+                        <button class="btn btn-outline-secondary" id="resetFilters">
+                            <i class="fas fa-redo"></i> Reset Filters
+                        </button>
+                        <button class="btn btn-primary" id="applyFilters">
+                            <i class="fas fa-filter"></i> Apply Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Predictions Table -->
+    <div class="card">
+        <div class="card-body">
+            {% if predictions %}
+            <div class="table-responsive">
+                <table class="table table-hover" id="predictionsTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Aircraft Model</th>
+                            <th>Flight Number</th>
+                            <th>Condition</th>
+                            <th>Confidence</th>
+                            <th>Faults</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for prediction in predictions %}
+                        <tr class="prediction-row" 
+                            data-model="{{ prediction.model_type }}"
+                            data-condition="{{ prediction.flight_condition }}"
+                            data-date="{{ prediction.timestamp.strftime('%Y-%m-%d') }}">
+                            <td>
+                                <strong>{{ prediction.timestamp.strftime('%Y-%m-%d') }}</strong><br>
+                                <small class="text-muted">{{ prediction.timestamp.strftime('%H:%M:%S') }}</small>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if prediction.model_type == 'boeing_737' %}
+                                        <i class="fas fa-plane me-2 text-primary"></i>
+                                    {% elif prediction.model_type == 'cessna_172' %}
+                                        <i class="fas fa-plane me-2 text-success"></i>
+                                    {% else %}
+                                        <i class="fas fa-helicopter me-2 text-info"></i>
+                                    {% endif %}
+                                    <span>{{ prediction.model_type|replace('_', ' ')|title }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <strong>{{ prediction.flight_number }}</strong><br>
+                                <small class="text-muted">{{ prediction.registration_number }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ prediction.get_condition_color() }} fs-6">
+                                    {{ prediction.get_condition_display() }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar bg-{{ prediction.get_condition_color() }}" 
+                                         style="width:  {{ (prediction.confidence_score * 100) }} %">
+                                        {{ (prediction.confidence_score * 100)|round(1) }}%
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% set fault_data = prediction.fault_detections|from_json %}
+                                <span class="badge bg-danger">{{ fault_data.total_faults or 0 }}</span>
+                                <small>total</small><br>
+                                <span class="badge bg-warning">{{ fault_data.critical_faults or 0 }}</span>
+                                <small>critical</small>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('prediction_result', prediction_id=prediction.id) }}" 
+                                       class="btn btn-outline-primary" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('email_preview', prediction_id=prediction.id) }}" 
+                                       class="btn btn-outline-info" title="View Email" target="_blank">
+                                        <i class="fas fa-envelope"></i>
+                                    </a>
+                                    <button class="btn btn-outline-secondary export-btn" 
+                                            data-id="{{ prediction.id }}" title="Export Data">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                <h3>No Prediction History</h3>
+                <p class="lead">You haven't made any predictions yet.</p>
+                <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plane"></i> Make Your First Prediction
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if predictions %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item disabled">
+                <a class="page-link" href="#" tabindex="-1">Previous</a>
+            </li>
+            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item">
+                <a class="page-link" href="#">Next</a>
+            </li>
+        </ul>
+    </nav>
+    {% endif %}
+
+    <!-- Export Options -->
+    <div class="card mt-4">
+        <div class="card-body">
+            <h5 class="card-title"><i class="fas fa-download"></i> Export Data</h5>
+            <p class="card-text">Export your prediction history in various formats:</p>
+            <div class="btn-group">
+                <button class="btn btn-outline-primary" id="exportJSON">
+                    <i class="fas fa-file-code"></i> JSON
+                </button>
+                <button class="btn btn-outline-success" id="exportCSV">
+                    <i class="fas fa-file-csv"></i> CSV
+                </button>
+                <button class="btn btn-outline-danger" id="exportPDF">
+                    <i class="fas fa-file-pdf"></i> PDF Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Filter functionality
+    $('#applyFilters').click(function() {
+        const model = $('#filterModel').val();
+        const condition = $('#filterCondition').val();
+        const dateFrom = $('#filterDateFrom').val();
+        const dateTo = $('#filterDateTo').val();
+        
+        $('.prediction-row').each(function() {
+            let show = true;
+            const rowModel = $(this).data('model');
+            const rowCondition = $(this).data('condition');
+            const rowDate = $(this).data('date');
+            
+            if (model && rowModel !== model) show = false;
+            if (condition && rowCondition !== condition) show = false;
+            if (dateFrom && rowDate < dateFrom) show = false;
+            if (dateTo && rowDate > dateTo) show = false;
+            
+            $(this).toggle(show);
+        });
+        
+        updateStats();
+    });
+    
+    // Reset filters
+    $('#resetFilters').click(function() {
+        $('#filterModel, #filterCondition, #filterDateFrom, #filterDateTo').val('');
+        $('.prediction-row').show();
+        updateStats();
+    });
+    
+    // Export individual prediction
+    $('.export-btn').click(function() {
+        const predictionId = $(this).data('id');
+        exportPrediction(predictionId, 'json');
+    });
+    
+    // Export all predictions as JSON
+    $('#exportJSON').click(function() {
+        exportAllPredictions('json');
+    });
+    
+    // Export all predictions as CSV
+    $('#exportCSV').click(function() {
+        exportAllPredictions('csv');
+    });
+    
+    // Export PDF report
+    $('#exportPDF').click(function() {
+        exportPDFReport();
+    });
+    
+    // Initialize
+    updateStats();
+});
+
+function updateStats() {
+    const visibleRows = $('.prediction-row:visible');
+    const total = visibleRows.length;
+    const safe = visibleRows.filter('[data-condition="normal"]').length;
+    const warning = visibleRows.filter('[data-condition="warning"]').length;
+    const critical = visibleRows.filter('[data-condition="critical"]').length;
+    
+    $('.stat-card:eq(0) h2').text(total);
+    $('.stat-card:eq(1) h2').text(safe);
+    $('.stat-card:eq(2) h2').text(warning);
+    $('.stat-card:eq(3) h2').text(critical);
+}
+
+function exportPrediction(predictionId, format) {
+    $.ajax({
+        url: `/api/prediction/${predictionId}/export`,
+        method: 'GET',
+        success: function(data) {
+            let blob, filename;
+            
+            if (format === 'json') {
+                blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+                filename = `prediction-${predictionId}.json`;
+            }
+            
+            downloadBlob(blob, filename);
+            showToast('Prediction exported successfully', 'success');
+        },
+        error: function() {
+            showToast('Failed to export prediction', 'danger');
+        }
+    });
+}
+
+function exportAllPredictions(format) {
+    const predictions = [];
+    $('.prediction-row:visible').each(function() {
+        const predictionId = $(this).find('.export-btn').data('id');
+        // In real implementation, you would fetch all data via API
+        predictions.push({
+            id: predictionId,
+            // Add other fields as needed
+        });
+    });
+    
+    let blob, filename;
+    const date = new Date().toISOString().split('T')[0];
+    
+    if (format === 'json') {
+        blob = new Blob([JSON.stringify(predictions, null, 2)], {type: 'application/json'});
+        filename = `predictions-${date}.json`;
+    } else if (format === 'csv') {
+        const csv = convertToCSV(predictions);
+        blob = new Blob([csv], {type: 'text/csv'});
+        filename = `predictions-${date}.csv`;
+    }
+    
+    downloadBlob(blob, filename);
+    showToast(`Exported ${predictions.length} predictions`, 'success');
+}
+
+function exportPDFReport() {
+    // In real implementation, this would generate a PDF via server
+    showToast('PDF report generation started', 'info');
+    
+    $.ajax({
+        url: '/api/history/pdf',
+        method: 'POST',
+        data: JSON.stringify({
+            filters: {
+                model: $('#filterModel').val(),
+                condition: $('#filterCondition').val(),
+                dateFrom: $('#filterDateFrom').val(),
+                dateTo: $('#filterDateTo').val()
+            }
+        }),
+        contentType: 'application/json',
+        success: function(response) {
+            window.open(response.pdf_url, '_blank');
+            showToast('PDF report generated', 'success');
+        },
+        error: function() {
+            showToast('Failed to generate PDF', 'danger');
+        }
+    });
+}
+
+function convertToCSV(data) {
+    if (data.length === 0) return '';
+    
+    const headers = Object.keys(data[0]);
+    const csvRows = [headers.join(',')];
+    
+    for (const row of data) {
+        const values = headers.map(header => {
+            const value = row[header];
+            return typeof value === 'string' ? `"${value.replace(/"/g, '""')}"` : value;
+        });
+        csvRows.push(values.join(','));
+    }
+    
+    return csvRows.join('\n');
+}
+
+function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function showToast(message, type) {
+    // Toast implementation from previous code
+    const toast = $(`
+        <div class="toast align-items-center text-white bg-${type} border-0"
+             style="position: fixed; top: 20px; right: 20px; z-index: 9999;" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `);
+    $('body').append(toast);
+    const bsToast = new bootstrap.Toast(toast[0]);
+    bsToast.show();
+}
+</script>
+
+<style>
+.stat-card {
+    transition: transform 0.3s;
+}
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+.prediction-row {
+    cursor: pointer;
+}
+.prediction-row:hover {
+    background-color: #f8f9fa;
+}
+.progress {
+    border-radius: 10px;
+    overflow: hidden;
+}
+</style>
+{% endblock %}

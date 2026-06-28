@@ -1,0 +1,78 @@
+"""
+Initialize database for the application
+Run this script once to create database tables
+"""
+
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# Import the app and db from run.py
+from run import app, db
+from datetime import datetime
+
+with app.app_context():
+    # Create all tables
+    db.create_all()
+    print("✅ Database tables created successfully!")
+    
+    # Check if any flight exists
+    from run import FlightSurvey
+    
+    # Sample flight records for testing
+    sample_flights = [
+        {
+            'flight_number': 'AI-2024',
+            'registration_number': 'VT-ABC',
+            'management_team': 'Operations Department',
+            'management_team_id': 'operations',
+            'management_contact': 'John Smith',
+            'management_email': 'ops@airindia.com',
+            'maintenance_team': 'Line Maintenance',
+            'maintenance_team_id': 'line_maintenance',
+            'maintenance_manager': 'Raj Kumar',
+            'maintenance_email': 'maintenance@airindia.com',
+            'total_flight_hours': 1250
+        },
+        {
+            'flight_number': '6E-1234',
+            'registration_number': 'VT-DEF',
+            'management_team': 'Maintenance Control',
+            'management_team_id': 'maintenance_control',
+            'management_contact': 'Sarah Johnson',
+            'management_email': 'control@indigo.com',
+            'maintenance_team': 'Base Maintenance',
+            'maintenance_team_id': 'base_maintenance',
+            'maintenance_manager': 'Amit Sharma',
+            'maintenance_email': 'base@indigo.com',
+            'total_flight_hours': 3420
+        },
+        {
+            'flight_number': 'SG-5678',
+            'registration_number': 'VT-GHI',
+            'management_team': 'Quality Assurance',
+            'management_team_id': 'quality_assurance',
+            'management_contact': 'Michael Chen',
+            'management_email': 'qa@spicejet.com',
+            'maintenance_team': 'Avionics Team',
+            'maintenance_team_id': 'avionics',
+            'maintenance_manager': 'Priya Patel',
+            'maintenance_email': 'avionics@spicejet.com',
+            'total_flight_hours': 890
+        }
+    ]
+    
+    for flight_data in sample_flights:
+        existing = FlightSurvey.query.filter_by(flight_number=flight_data['flight_number']).first()
+        if not existing:
+            flight = FlightSurvey(**flight_data)
+            db.session.add(flight)
+    
+    db.session.commit()
+    print("✅ Sample flight records created!")
+    
+    print("\n" + "="*50)
+    print("DATABASE INITIALIZATION COMPLETE")
+    print("="*50)
+    print("Sample Flight Numbers: AI-2024, 6E-1234, SG-5678")
+    print("="*50)

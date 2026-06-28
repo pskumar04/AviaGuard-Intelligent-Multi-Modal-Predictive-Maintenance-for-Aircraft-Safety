@@ -1,0 +1,63 @@
+{
+  "aircraft_model": "Cessna 172 Skyhawk",
+  "type": "Light single-engine propeller",
+  "engine_model": "Lycoming IO-360-L2A",
+  "manufacturer": "Cessna",
+  "max_passengers": 3,
+  "cruise_speed": "122 knots",
+  "max_range": "640 nm",
+  
+  "multi_sensor_configuration": {
+    "vibration_sensors": {
+      "engine_vibration": {
+        "sensor_type": "ACCELEROMETER",
+        "sampling_rate": 2000,
+        "frequency_range": "0-1 kHz",
+        "location": ["Engine Mount", "Propeller Hub"],
+        "normal_range": [0, 0.8],
+        "unit": "g RMS"
+      }
+    },
+    
+    "thermal_sensors": {
+      "engine_thermal": {
+        "sensor_type": "THERMOCOUPLE",
+        "location": ["Cylinder Head", "Oil Cooler"],
+        "normal_range": [100, 250],
+        "unit": "°F"
+      }
+    },
+    
+    "acoustic_sensors": {
+      "engine_acoustics": {
+        "sensor_type": "MICROPHONE",
+        "sampling_rate": 16000,
+        "location": ["Cockpit", "Engine Bay"],
+        "normal_range": [70, 90],
+        "unit": "dB"
+      }
+    }
+  },
+  
+  "predictive_parameters": {
+    "engine": {
+      "RPM": {"unit": "RPM", "normal_range": [2000, 2700]},
+      "manifold_pressure": {"unit": "inHg", "normal_range": [15, 30]},
+      "oil_temperature": {"unit": "°F", "normal_range": [100, 245]},
+      "oil_pressure": {"unit": "PSI", "normal_range": [20, 60]},
+      "fuel_pressure": {"unit": "PSI", "normal_range": [0.5, 8]},
+      "cylinder_head_temp": {"unit": "°F", "normal_range": [200, 500]}
+    }
+  },
+  
+  "multi_class_fault_categories": {
+    "engine_faults": ["magnet_failure", "spark_plug_fouling", "carburetor_icing", "oil_leak"],
+    "airframe_faults": ["corrosion", "crack_detection", "control_cable_wear"]
+  },
+  
+  "edge_deployment_config": {
+    "inference_time_target": "<5 ms",
+    "hardware_supported": ["Raspberry Pi 4", "NVIDIA Jetson Nano"],
+    "power_consumption_target": "<5W"
+  }
+}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Select Flight Route{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">✈️ Select Flight Route</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info mb-4">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Current Aircraft Hours:</strong> 
+                        {{ session.get('flight_details', {}).get('aircraft_hours', 0) }} hours
+                    </div>
+                    
+                    <p class="text-muted">Select the route for this flight. Flight time will be automatically added to total aircraft hours.</p>
+                    
+                    <form method="POST">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Select Route:</label>
+                            <select name="route" class="form-select form-select-lg" required>
+                                <option value="">-- Select a route --</option>
+                                {% for route_code, route_info in routes.items() %}
+                                <option value="{{ route_code }}">
+                                    {{ route_info.from }} → {{ route_info.to }} 
+                                    - {{ (route_info.flight_time_hours * 60)|int }} minutes 
+                                    ({{ route_info.distance }} km)
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Flight time will be automatically calculated.</small>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-plane-departure"></i> Confirm Flight
+                            </button>
+                            <a href="{{ url_for('flight_details') }}" class="btn btn-secondary btn-lg">Back</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

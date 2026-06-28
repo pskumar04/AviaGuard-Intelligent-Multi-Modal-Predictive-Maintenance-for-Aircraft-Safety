@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+
+{% block title %}Register - Aircraft Predictive Maintenance{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-5">
+                    <div class="text-center mb-5">
+                        <h1 class="display-5">
+                            <i class="fas fa-user-plus text-primary"></i> Create Account
+                        </h1>
+                        <p class="lead">Register to use the aircraft predictive maintenance system</p>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('register') }}">
+                        {{ form.hidden_tag() }}
+
+                        <div class="row">
+                            <!-- Username -->
+                            <div class="col-md-6 mb-4">
+                                {{ form.username.label(class="form-label") }}
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-user"></i>
+                                    </span>
+                                    {{ form.username(class="form-control form-control-lg", placeholder="Choose a username") }}
+                                </div>
+                                <small class="form-text text-muted">Minimum 3 characters</small>
+                                {% if form.username.errors %}
+                                    <div class="text-danger mt-2">
+                                        {% for error in form.username.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Email -->
+                            <div class="col-md-6 mb-4">
+                                {{ form.email.label(class="form-label") }}
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-envelope"></i>
+                                    </span>
+                                    {{ form.email(class="form-control form-control-lg", placeholder="your.email@example.com") }}
+                                </div>
+                                {% if form.email.errors %}
+                                    <div class="text-danger mt-2">
+                                        {% for error in form.email.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Password -->
+                            <div class="col-md-6 mb-4">
+                                {{ form.password.label(class="form-label") }}
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-lock"></i>
+                                    </span>
+                                    {{ form.password(class="form-control form-control-lg", placeholder="Create a password") }}
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted">Minimum 6 characters</small>
+                                {% if form.password.errors %}
+                                    <div class="text-danger mt-2">
+                                        {% for error in form.password.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Confirm Password -->
+                            <div class="col-md-6 mb-4">
+                                {{ form.confirm_password.label(class="form-label") }}
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-lock"></i>
+                                    </span>
+                                    {{ form.confirm_password(class="form-control form-control-lg", placeholder="Confirm your password") }}
+                                    <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                {% if form.confirm_password.errors %}
+                                    <div class="text-danger mt-2">
+                                        {% for error in form.confirm_password.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Role -->
+                            <div class="col-md-6 mb-4">
+                                {{ form.role.label(class="form-label") }}
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-user-tag"></i>
+                                    </span>
+                                    {{ form.role(class="form-select form-select-lg") }}
+                                </div>
+                                <small class="form-text text-muted">Select your primary role</small>
+                            </div>
+
+                            <!-- Password Strength -->
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label">Password Strength</label>
+                                <div class="password-strength mt-2">
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar" id="passwordStrength" style="width: 0%"></div>
+                                    </div>
+                                    <small id="passwordStrengthText" class="form-text">Enter a password</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Terms Agreement -->
+                        <div class="mb-4 form-check">
+                            <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                            <label class="form-check-label" for="agreeTerms">
+                                I agree to the 
+                                <a href="#" class="text-decoration-none">Terms of Service</a> and 
+                                <a href="#" class="text-decoration-none">Privacy Policy</a>
+                            </label>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid gap-2 mb-4">
+                            {{ form.submit(class="btn btn-primary btn-lg") }}
+                        </div>
+
+                        <!-- Login Link -->
+                        <div class="text-center">
+                            <p class="mb-0">Already have an account?
+                                <a href="{{ url_for('login') }}" class="text-decoration-none fw-bold">
+                                    Login here
+                                </a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Role Information -->
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="role-card p-3 text-center">
+                        <i class="fas fa-plane fa-2x text-primary mb-3"></i>
+                        <h5>Flight Operator</h5>
+                        <p class="small">Submit predictions, view history, manage flights</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="role-card p-3 text-center">
+                        <i class="fas fa-tools fa-2x text-warning mb-3"></i>
+                        <h5>Maintenance Technician</h5>
+                        <p class="small">Receive detailed fault reports, schedule maintenance</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="role-card p-3 text-center">
+                        <i class="fas fa-eye fa-2x text-info mb-3"></i>
+                        <h5>Viewer</h5>
+                        <p class="small">View prediction results, read-only access</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Toggle password visibility
+    $('#togglePassword, #toggleConfirmPassword').click(function() {
+        const inputId = $(this).parent().find('input').attr('id');
+        const passwordInput = $(`#${inputId}`);
+        const type = passwordInput.attr('type') === 'password' ? 'text' : 'password';
+        passwordInput.attr('type', type);
+        $(this).find('i').toggleClass('fa-eye fa-eye-slash');
+    });
+
+    // Password strength checker
+    $('#password').on('input', function() {
+        const password = $(this).val();
+        const strength = calculatePasswordStrength(password);
+        
+        $('#passwordStrength').css('width', strength.score + '%');
+        $('#passwordStrength').removeClass('bg-danger bg-warning bg-success');
+        $('#passwordStrength').addClass(strength.color);
+        
+        $('#passwordStrengthText').text(strength.text);
+        $('#passwordStrengthText').removeClass('text-danger text-warning text-success');
+        $('#passwordStrengthText').addClass(strength.textColor);
+    });
+
+    // Form validation
+    $('form').on('submit', function(e) {
+        const password = $('#password').val();
+        const confirmPassword = $('#confirm_password').val();
+        
+        if (password !== confirmPassword) {
+            e.preventDefault();
+            showAlert('Passwords do not match', 'danger');
+            return false;
+        }
+        
+        if (!document.getElementById('agreeTerms').checked) {
+            e.preventDefault();
+            showAlert('You must agree to the terms', 'warning');
+            return false;
+        }
+    });
+});
+
+function calculatePasswordStrength(password) {
+    let score = 0;
+    
+    // Length check
+    if (password.length >= 8) score += 25;
+    if (password.length >= 12) score += 15;
+    
+    // Complexity checks
+    if (/[A-Z]/.test(password)) score += 20;
+    if (/[a-z]/.test(password)) score += 20;
+    if (/[0-9]/.test(password)) score += 20;
+    if (/[^A-Za-z0-9]/.test(password)) score += 20;
+    
+    // Clamp to 100
+    score = Math.min(score, 100);
+    
+    // Determine color and text
+    let color, text, textColor;
+    
+    if (score < 40) {
+        color = 'bg-danger';
+        text = 'Weak password';
+        textColor = 'text-danger';
+    } else if (score < 70) {
+        color = 'bg-warning';
+        text = 'Moderate password';
+        textColor = 'text-warning';
+    } else {
+        color = 'bg-success';
+        text = 'Strong password';
+        textColor = 'text-success';
+    }
+    
+    return { score, color, text, textColor };
+}
+
+function showAlert(message, type) {
+    const alert = $(`
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `);
+    $('.card-body').prepend(alert);
+}
+</script>
+
+<style>
+.role-card {
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    transition: all 0.3s;
+}
+.role-card:hover {
+    border-color: #0d6efd;
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}

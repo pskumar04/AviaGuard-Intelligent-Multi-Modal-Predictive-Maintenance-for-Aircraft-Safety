@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+
+{% block title %}Prediction Results - {{ prediction.model_type|title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Progress Bar -->
+            <div class="progress-container mb-5">
+                <div class="progress" style="height: 10px;">
+                    <div class="progress-bar bg-success" style="width: 100%"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <span class="text-success"><i class="fas fa-check-circle"></i> Model Selected</span>
+                    <span class="text-success"><i class="fas fa-check-circle"></i> Flight Details</span>
+                    <span class="text-success"><i class="fas fa-check-circle"></i> Survey Completed</span>
+                    <span class="text-primary"><strong><i class="fas fa-check-circle"></i> Prediction Complete</strong></span>
+                </div>
+            </div>
+
+            <!-- Prediction Result Card -->
+            <div class="card shadow-lg border-0 mb-5">
+                <div class="card-body p-4">
+                    <!-- Result Header -->
+                    <div class="result-header text-center mb-5">
+                        <div class="result-icon mb-3">
+                            {% if prediction.flight_condition == 'normal' %}
+                                <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
+                            {% elif prediction.flight_condition == 'warning' %}
+                                <i class="fas fa-exclamation-triangle text-warning" style="font-size: 5rem;"></i>
+                            {% else %}
+                                <i class="fas fa-times-circle text-danger" style="font-size: 5rem;"></i>
+                            {% endif %}
+                        </div>
+                        
+                        <h1 class="display-4 mb-3">{{ explanation.title }}</h1>
+                        
+                        <div class="confidence-badge mb-3">
+                            <span class="badge bg-{{ explanation.color }} fs-5 p-3">
+                                Confidence: {{ (prediction.confidence_score * 100)|round(1) }}%
+                            </span>
+                        </div>
+                        
+                        <p class="lead">{{ explanation.description }}</p>
+                    </div>
+
+                    <!-- Aircraft Information -->
+                    <div class="row mb-5">
+                        <div class="col-md-6">
+                            <div class="info-card">
+                                <h4><i class="fas fa-plane"></i> Aircraft Information</h4>
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th>Model:</th>
+                                        <td>{{ prediction.model_type|replace('_', ' ')|title }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Flight Number:</th>
+                                        <td>{{ prediction.flight_number }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Registration:</th>
+                                        <td>{{ prediction.registration_number }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Prediction Time:</th>
+                                        <td>{{ prediction.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-card">
+                                <h4><i class="fas fa-chart-pie"></i> Prediction Summary</h4>
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th>Flight Condition:</th>
+                                        <td>
+                                            <span class="badge bg-{{ prediction.get_condition_color() }} fs-6">
+                                                {{ prediction.get_condition_display() }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Faults Detected:</th>
+                                        <td>{{ fault_detections.total_faults }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Critical Faults:</th>
+                                        <td>{{ fault_detections.critical_faults }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Average Confidence:</th>
+                                        <td>{{ (fault_detections.average_confidence * 100)|round(1) if fault_detections.average_confidence else 0 }}%</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fault Details -->
+                    {% if fault_detections.predictions %}
+                    <div class="fault-details mb-5">
+                        <h3 class="mb-4"><i class="fas fa-exclamation-circle"></i> Detected Faults</h3>
+                        <div class="row">
+                            {% for fault in fault_detections.predictions[:5] %}
+                            <div class="col-md-6 mb-3">
+                                <div class="fault-card {{ 'critical' if fault.is_critical else 'warning' }}">
+                                    <div class="fault-header">
+                                        <h5>
+                                            {% if fault.is_critical %}
+                                                <i class="fas fa-fire text-danger"></i>
+                                            {% else %}
+                                                <i class="fas fa-exclamation-triangle text-warning"></i>
+                                            {% endif %}
+                                            {{ fault.fault_type|replace('_', ' ')|title }}
+                                        </h5>
+                                        <span class="badge bg-{{ 'danger' if fault.is_critical else 'warning' }}">
+                                            {{ fault.confidence|round(3) }}
+                                        </span>
+                                    </div>
+                                    <p class="mb-2"><strong>Description:</strong> {{ fault.fault_description }}</p>
+                                    <p class="mb-2"><strong>Severity:</strong> {{ fault.severity|title }}</p>
+                                    <p class="mb-0"><strong>Action:</strong> {{ fault.recommended_action }}</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- XAI Explanations -->
+                    <div class="xai-explanations mb-5">
+                        <h3 class="mb-4"><i class="fas fa-brain"></i> AI Explanation</h3>
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <div class="explanation-card">
+                                    <h5><i class="fas fa-chart-bar text-primary"></i> Key Factors</h5>
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item">
+                                            <i class="fas fa-check-circle text-success"></i>
+                                            Engine parameters within normal range
+                                        </li>
+                                        <li class="list-group-item">
+                                            <i class="fas fa-check-circle text-success"></i>
+                                            Structural integrity confirmed
+                                        </li>
+                                        {% if fault_detections.total_faults > 0 %}
+                                        <li class="list-group-item">
+                                            <i class="fas fa-exclamation-triangle text-warning"></i>
+                                            {{ fault_detections.total_faults }} potential issues detected
+                                        </li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <div class="explanation-card">
+                                    <h5><i class="fas fa-lightbulb text-warning"></i> AI Insights</h5>
+                                    <p>The AI model analyzed multiple sensor readings and patterns to determine:</p>
+                                    <ul>
+                                        <li>Correlation between different parameters</li>
+                                        <li>Historical patterns of similar aircraft</li>
+                                        <li>Failure probability based on current readings</li>
+                                        <li>Time-to-failure estimation</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recommendations -->
+                    <div class="recommendations mb-5">
+                        <h3 class="mb-4"><i class="fas fa-clipboard-check"></i> Recommendations</h3>
+                        <div class="alert alert-{{ explanation.color }}">
+                            <h5 class="alert-heading">{{ explanation.recommendation }}</h5>
+                            {% if prediction.flight_condition == 'warning' %}
+                            <hr>
+                            <ul class="mb-0">
+                                <li>Schedule maintenance within next 48 hours</li>
+                                <li>Perform detailed inspection of detected issues</li>
+                                <li>Monitor affected systems closely during next flight</li>
+                            </ul>
+                            {% elif prediction.flight_condition == 'critical' %}
+                            <hr>
+                            <ul class="mb-0">
+                                <li><strong>GROUND AIRCRAFT IMMEDIATELY</strong></li>
+                                <li>Do not attempt to fly until repairs are completed</li>
+                                <li>Contact maintenance team for emergency inspection</li>
+                                <li>Review all safety protocols</li>
+                            </ul>
+                            {% else %}
+                            <hr>
+                            <ul class="mb-0">
+                                <li>Continue with regular maintenance schedule</li>
+                                <li>Next scheduled inspection is recommended</li>
+                                <li>Monitor all systems as per standard procedures</li>
+                            </ul>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Email Confirmation -->
+                    <div class="email-confirmation mb-4">
+                        <div class="alert alert-success">
+                            <h5><i class="fas fa-envelope"></i> Email Reports Sent</h5>
+                            <p class="mb-0">
+                                Detailed prediction reports have been sent to:
+                                <strong>{{ prediction.owner_email }}</strong> (Owner),
+                                <strong>{{ prediction.management_email }}</strong> (Management), and
+                                <strong>{{ prediction.maintenance_email }}</strong> (Maintenance).
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons d-flex justify-content-between mt-5 pt-4 border-top">
+                        <a href="{{ url_for('index') }}" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-home"></i> Back to Home
+                        </a>
+                        <a href="{{ url_for('email_preview', prediction_id=prediction.id) }}" 
+                           class="btn btn-info btn-lg" target="_blank">
+                            <i class="fas fa-eye"></i> Preview Email
+                        </a>
+                        <button class="btn btn-success btn-lg" onclick="window.print()">
+                            <i class="fas fa-print"></i> Print Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Next Steps -->
+            <div class="next-steps">
+                <h3 class="text-center mb-4">Next Steps</h3>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="step-card text-center p-3">
+                            <div class="step-icon mb-3">
+                                <i class="fas fa-tools fa-2x"></i>
+                            </div>
+                            <h5>Maintenance Action</h5>
+                            <p>Follow the recommendations above based on the prediction result.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="step-card text-center p-3">
+                            <div class="step-icon mb-3">
+                                <i class="fas fa-history fa-2x"></i>
+                            </div>
+                            <h5>Track History</h5>
+                            <p>View prediction history to track aircraft condition over time.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="step-card text-center p-3">
+                            <div class="step-icon mb-3">
+                                <i class="fas fa-redo fa-2x"></i>
+                            </div>
+                            <h5>New Prediction</h5>
+                            <p>Run another prediction after maintenance or for a different aircraft.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.progress-container {
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+.info-card {
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    height: 100%;
+}
+.fault-card {
+    padding: 15px;
+    border-radius: 10px;
+    border-left: 5px solid;
+    margin-bottom: 15px;
+}
+.fault-card.critical {
+    border-left-color: #dc3545;
+    background: #f8d7da;
+}
+.fault-card.warning {
+    border-left-color: #ffc107;
+    background: #fff3cd;
+}
+.fault-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.explanation-card {
+    padding: 20px;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    height: 100%;
+}
+.step-card {
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    height: 100%;
+    transition: all 0.3s;
+}
+.step-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+.step-icon {
+    color: #0d6efd;
+}
+.confidence-badge .badge {
+    font-size: 1.2rem;
+    padding: 10px 20px;
+}
+</style>
+{% endblock %}

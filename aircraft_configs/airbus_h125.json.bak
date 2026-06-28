@@ -1,0 +1,57 @@
+{
+  "aircraft_model": "Airbus H125 (AS350)",
+  "type": "Light utility helicopter",
+  "engine_model": "Turbomeca Arriel 2D",
+  "manufacturer": "Airbus Helicopters",
+  "max_passengers": 6,
+  "cruise_speed": "130 knots",
+  "max_range": "350 nm",
+  
+  "multi_sensor_configuration": {
+    "vibration_sensors": {
+      "rotor_vibration": {
+        "sensor_type": "ACCELEROMETER_ARRAY",
+        "sampling_rate": 5000,
+        "frequency_range": "0-2.5 kHz",
+        "location": ["Main Rotor Head", "Tail Rotor", "Gearbox"],
+        "normal_range": [0, 0.4],
+        "unit": "ips"
+      }
+    },
+    
+    "acoustic_sensors": {
+      "gearbox_acoustics": {
+        "sensor_type": "AE_SENSOR",
+        "frequency_range": "50-500 kHz",
+        "location": ["Main Gearbox", "Tail Gearbox"],
+        "normal_range": [0, 50],
+        "unit": "dB AE"
+      }
+    }
+  },
+  
+  "predictive_parameters": {
+    "rotor_system": {
+      "rotor_RPM": {"unit": "RPM", "normal_range": [300, 400]},
+      "vibration_level": {"unit": "ips", "normal_range": [0, 0.5]},
+      "track_and_balance": {"unit": "units", "normal_range": [0, 0.1]}
+    },
+    
+    "engine": {
+      "torque": {"unit": "%", "normal_range": [20, 80]},
+      "NG": {"unit": "%", "normal_range": [98, 102]},
+      "T4": {"unit": "°C", "normal_range": [500, 850]}
+    }
+  },
+  
+  "multi_class_fault_categories": {
+    "rotor_faults": ["blade_track_issue", "bearing_wear", "gear_pitting", "imbalance"],
+    "engine_faults": ["compressor_fouling", "turbine_damage", "oil_contamination"]
+  },
+  
+  "edge_deployment_config": {
+    "inference_time_target": "<8 ms",
+    "hardware_supported": ["NVIDIA Jetson TX2", "FPGA Accelerators"],
+    "vibration_analysis": "real_time_fft"
+  }
+}

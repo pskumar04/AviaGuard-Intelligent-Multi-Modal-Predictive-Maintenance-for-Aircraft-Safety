@@ -1,0 +1,26 @@
+{
+  "real_sensor_ranges": {
+    "vibration": {
+      "engine_vibration": {"min": 0.1, "max": 0.5, "critical_min": 0.7, "critical_max": 1.2, "unit": "g RMS", "warning": "0.5-0.7"},
+      "airframe_vibration": {"min": 0.05, "max": 0.3, "critical_min": 0.4, "critical_max": 0.8, "unit": "g RMS", "warning": "0.3-0.4"}
+    },
+    "thermal": {
+      "egt": {"min": 400, "max": 650, "critical_min": 650, "critical_max": 750, "unit": "°C", "warning": "650-700"},
+      "oil_temperature": {"min": 60, "max": 110, "critical_min": 110, "critical_max": 130, "unit": "°C", "warning": "110-120"},
+      "cylinder_head_temp": {"min": 200, "max": 450, "critical_min": 450, "critical_max": 500, "unit": "°C", "warning": "450-475"}
+    },
+    "acoustic": {
+      "engine_noise": {"min": 60, "max": 85, "critical_min": 90, "critical_max": 110, "unit": "dB", "warning": "85-90"},
+      "structural_acoustic": {"min": 30, "max": 40, "critical_min": 45, "critical_max": 60, "unit": "dB AE", "warning": "40-45"}
+    },
+    "pressure": {
+      "oil_pressure": {"min": 40, "max": 80, "critical_min": 30, "critical_max": 90, "unit": "PSI", "warning": "30-40 or 80-90"},
+      "hydraulic_pressure": {"min": 2800, "max": 3200, "critical_min": 2500, "critical_max": 3400, "unit": "PSI", "warning": "2500-2800 or 3200-3400"}
+    }
+  },
+  "condition_thresholds": {
+    "normal": "All sensors within normal range",
+    "warning": "1-3 sensors in warning range",
+    "critical": "Any sensor in critical range or >3 sensors in warning range"
+  }
+}

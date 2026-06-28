@@ -1,0 +1,211 @@
+{
+  "aircraft_model": "Boeing 737 NG",
+  "type": "Narrow-body jetliner",
+  "engine_model": "CFM56-7B",
+  "manufacturer": "Boeing",
+  "max_passengers": 189,
+  "cruise_speed": "Mach 0.785",
+  "max_range": "5,800 km",
+  
+  "multi_sensor_configuration": {
+    "vibration_sensors": {
+      "engine_vibration": {
+        "sensor_type": "ACCELEROMETER",
+        "sampling_rate": 10000,
+        "frequency_range": "0-5 kHz",
+        "location": ["Engine Mount", "Fan Case", "Turbine Case"],
+        "normal_range": [0, 0.5],
+        "unit": "g RMS",
+        "fault_threshold": 1.2
+      },
+      "airframe_vibration": {
+        "sensor_type": "ACCELEROMETER",
+        "sampling_rate": 2000,
+        "frequency_range": "0-1 kHz",
+        "location": ["Wing Root", "Fuselage", "Tail Section"],
+        "normal_range": [0, 0.3],
+        "unit": "g RMS",
+        "fault_threshold": 0.8
+      }
+    },
+    
+    "thermal_sensors": {
+      "engine_thermal": {
+        "sensor_type": "INFRARED_ARRAY",
+        "resolution": "640x480",
+        "temperature_range": "-20°C to 1500°C",
+        "location": ["Engine Casing", "Exhaust", "Bearings"],
+        "normal_range": [60, 650],
+        "unit": "°C",
+        "fault_threshold": 700
+      },
+      "systems_thermal": {
+        "sensor_type": "THERMOCOUPLE",
+        "accuracy": "±0.5°C",
+        "location": ["Hydraulic System", "Electrical Bay", "Avionics"],
+        "normal_range": [20, 85],
+        "unit": "°C",
+        "fault_threshold": 95
+      }
+    },
+    
+    "acoustic_sensors": {
+      "engine_acoustics": {
+        "sensor_type": "MICROPHONE_ARRAY",
+        "sampling_rate": 48000,
+        "frequency_range": "20-20,000 Hz",
+        "location": ["Engine Inlet", "Engine Exhaust", "Cabin"],
+        "normal_range": [60, 85],
+        "unit": "dB",
+        "fault_threshold": 95
+      },
+      "structural_acoustics": {
+        "sensor_type": "AE_SENSOR",
+        "frequency_range": "50-500 kHz",
+        "location": ["Wing Joints", "Fuselage Seams", "Landing Gear"],
+        "normal_range": [0, 40],
+        "unit": "dB AE",
+        "fault_threshold": 60
+      }
+    },
+    
+    "pressure_sensors": {
+      "engine_pressure": {
+        "sensor_type": "PRESSURE_TRANSDUCER",
+        "range": "0-500 PSI",
+        "accuracy": "±0.1% FS",
+        "location": ["Oil System", "Fuel System", "Bleed Air"],
+        "normal_range": [40, 80],
+        "unit": "PSI",
+        "fault_threshold": [30, 90]
+      },
+      "cabin_pressure": {
+        "sensor_type": "BAROMETRIC",
+        "range": "0-15 PSI",
+        "location": ["Cabin", "Cockpit", "Cargo Hold"],
+        "normal_range": [10.9, 11.3],
+        "unit": "PSI",
+        "fault_threshold": [10.5, 11.5]
+      }
+    }
+  },
+  
+  "predictive_parameters": {
+    "engine": {
+      "N1_RPM": {"unit": "%", "normal_range": [95, 101], "weight": 0.15},
+      "N2_RPM": {"unit": "%", "normal_range": [98, 102], "weight": 0.15},
+      "EGT": {"unit": "°C", "normal_range": [400, 650], "weight": 0.20},
+      "oil_temperature": {"unit": "°C", "normal_range": [60, 110], "weight": 0.10},
+      "oil_pressure": {"unit": "PSI", "normal_range": [40, 80], "weight": 0.10},
+      "fuel_flow": {"unit": "kg/h", "normal_range": [2000, 3000], "weight": 0.08},
+      "vibration_level": {"unit": "ips", "normal_range": [0, 0.5], "weight": 0.12},
+      "exhaust_smoke": {"unit": "opacity%", "normal_range": [0, 20], "weight": 0.05},
+      "compressor_efficiency": {"unit": "%", "normal_range": [85, 95], "weight": 0.05}
+    },
+    "structural": {
+      "wing_vibration": {"unit": "g", "normal_range": [0, 0.3], "weight": 0.25},
+      "fuselage_strain": {"unit": "με", "normal_range": [0, 500], "weight": 0.20},
+      "landing_gear_shock": {"unit": "g", "normal_range": [0, 3], "weight": 0.25},
+      "control_surface_force": {"unit": "lb", "normal_range": [10, 150], "weight": 0.20},
+      "corrosion_level": {"unit": "%", "normal_range": [0, 5], "weight": 0.10}
+    },
+    "systems": {
+      "hydraulic_pressure": {"unit": "PSI", "normal_range": [2800, 3200], "weight": 0.30},
+      "cabin_pressure_altitude": {"unit": "ft", "normal_range": [0, 8000], "weight": 0.25},
+      "bleed_air_temperature": {"unit": "°C", "normal_range": [150, 250], "weight": 0.20},
+      "electrical_voltage": {"unit": "V", "normal_range": [27, 29], "weight": 0.15},
+      "avionics_temperature": {"unit": "°C", "normal_range": [0, 70], "weight": 0.10}
+    },
+    "flight_controls": {
+      "aileron_position": {"unit": "deg", "normal_range": [-25, 25], "weight": 0.25},
+      "elevator_position": {"unit": "deg", "normal_range": [-20, 20], "weight": 0.25},
+      "rudder_position": {"unit": "deg", "normal_range": [-25, 25], "weight": 0.25},
+      "flap_position": {"unit": "deg", "normal_range": [0, 40], "weight": 0.15},
+      "spoiler_position": {"unit": "deg", "normal_range": [0, 60], "weight": 0.10}
+    }
+  },
+  
+  "multi_class_fault_categories": {
+    "engine_faults": {
+      "bearing_wear": {"severity": "high", "detection_time": "early", "sensors": ["vibration", "thermal", "acoustic"]},
+      "blade_damage": {"severity": "critical", "detection_time": "immediate", "sensors": ["vibration", "acoustic"]},
+      "oil_leak": {"severity": "medium", "detection_time": "medium", "sensors": ["pressure", "thermal"]},
+      "compressor_stall": {"severity": "high", "detection_time": "immediate", "sensors": ["pressure", "vibration"]},
+      "ignition_failure": {"severity": "critical", "detection_time": "immediate", "sensors": ["thermal", "acoustic"]}
+    },
+    "structural_faults": {
+      "crack_detection": {"severity": "critical", "detection_time": "early", "sensors": ["vibration", "acoustic"]},
+      "corrosion": {"severity": "medium", "detection_time": "late", "sensors": ["visual", "acoustic"]},
+      "fatigue": {"severity": "high", "detection_time": "medium", "sensors": ["strain", "vibration"]},
+      "loose_fasteners": {"severity": "medium", "detection_time": "medium", "sensors": ["vibration", "acoustic"]}
+    },
+    "systems_faults": {
+      "hydraulic_leak": {"severity": "high", "detection_time": "medium", "sensors": ["pressure", "thermal"]},
+      "electrical_short": {"severity": "critical", "detection_time": "immediate", "sensors": ["thermal", "electrical"]},
+      "avionics_failure": {"severity": "high", "detection_time": "immediate", "sensors": ["thermal", "electrical"]},
+      "fuel_system_issue": {"severity": "critical", "detection_time": "medium", "sensors": ["pressure", "flow"]}
+    },
+    "control_faults": {
+      "actuator_jam": {"severity": "critical", "detection_time": "immediate", "sensors": ["position", "force"]},
+      "sensor_failure": {"severity": "medium", "detection_time": "immediate", "sensors": ["data_consistency"]},
+      "runaway_trim": {"severity": "high", "detection_time": "immediate", "sensors": ["position", "rate"]}
+    }
+  },
+  
+  "failure_criteria": {
+    "engine_failure_conditions": [
+      "EGT > 700°C for > 5 seconds",
+      "Oil pressure < 30 PSI for > 10 seconds",
+      "N1 or N2 RPM fluctuation > 5%",
+      "Severe vibration > 1.0 ips sustained",
+      "Compressor surge detected",
+      "Oil temperature > 130°C",
+      "Fuel flow anomaly > 20%"
+    ],
+    "structural_failure_conditions": [
+      "Crack detection in primary structure",
+      "Wing vibration > 0.5g sustained",
+      "Corrosion level > 30% in critical areas",
+      "Strain measurement > 1000 με",
+      "Structural resonance detected"
+    ],
+    "systems_failure_conditions": [
+      "Hydraulic pressure < 2500 PSI",
+      "Cabin altitude > 10000 ft",
+      "Multiple system error codes",
+      "Electrical bus voltage < 24V",
+      "Avionics temperature > 85°C"
+    ],
+    "flight_control_failures": [
+      "Control surface jammed",
+      "Actuator response time > 2 seconds",
+      "Runaway trim condition",
+      "Control force > 200 lb",
+      "Surface position error > 5°"
+    ]
+  },
+  
+  "maintenance_checks": [
+    {"check": "A-Check", "interval": "500 flight hours", "duration": "8-12 hours"},
+    {"check": "B-Check", "interval": "2000 flight hours", "duration": "1-2 days"},
+    {"check": "C-Check", "interval": "18-24 months", "duration": "1-2 weeks"},
+    {"check": "D-Check", "interval": "6 years", "duration": "1-2 months"}
+  ],
+  
+  "edge_deployment_config": {
+    "inference_time_target": "<10 ms",
+    "model_format": ["TensorRT", "TFLite", "ONNX"],
+    "hardware_supported": ["NVIDIA Jetson TX2", "NVIDIA Jetson Xavier", "FPGA Accelerators"],
+    "sensor_interfaces": ["I2C", "SPI", "UART", "CAN Bus", "EtherCAT"],
+    "power_consumption_target": "<15W",
+    "memory_footprint": "<2GB",
+    "update_frequency": "100 Hz"
+  },
+  
+  "xai_configuration": {
+    "explanation_methods": ["SHAP", "LIME", "Grad-CAM", "Attention Visualization"],
+    "explanation_depth": ["feature_level", "sensor_level", "time_step_level"],
+    "visualization_outputs": ["heatmaps", "bar_charts", "time_series", "3D_plots"],
+    "explanation_latency": "<50 ms"
+  }
+}

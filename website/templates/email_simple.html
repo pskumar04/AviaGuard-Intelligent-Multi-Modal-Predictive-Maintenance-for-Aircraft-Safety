@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aircraft Safety Prediction Report</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .status-banner {
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .status-safe {
+            background-color: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+        }
+        .status-warning {
+            background-color: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
+        }
+        .status-critical {
+            background-color: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+        }
+        .info-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .info-section h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        .recommendation {
+            padding: 25px;
+            background-color: #e7f1ff;
+            border-radius: 10px;
+            border: 2px solid #667eea;
+            margin: 30px 0;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #dee2e6;
+            font-size: 12px;
+            color: #6c757d;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        td {
+            padding: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div style="font-size: 48px; margin-bottom: 15px;">✈️</div>
+            <h1>Aircraft Predictive Maintenance System</h1>
+            <p>Safety Prediction Report</p>
+        </div>
+        
+        <div class="content">
+            <!-- Status Banner -->
+            <div class="status-banner status-{{ condition }}">
+                {% if condition == 'normal' %}
+                    ✅ AIRCRAFT IS SAFE TO FLY
+                {% elif condition == 'warning' %}
+                    ⚠️ AIRCRAFT HAS SOME ISSUES
+                {% else %}
+                    ❌ AIRCRAFT IS NOT SAFE TO FLY
+                {% endif %}
+            </div>
+            
+            <!-- Flight Information -->
+            <div class="info-section">
+                <h3>📋 Flight Information</h3>
+                <table>
+                    <tr>
+                        <td><strong>Flight Number:</strong></td>
+                        <td>{{ flight_details.flight_number }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Registration:</strong></td>
+                        <td>{{ flight_details.registration }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Aircraft:</strong></td>
+                        <td>{{ prediction.model_type.replace('_', ' ').title() }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Owner:</strong></td>
+                        <td>{{ flight_details.owner_name }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Pilot:</strong></td>
+                        <td>{{ flight_details.pilot_name }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Prediction Time:</strong></td>
+                        <td>{{ now.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Confidence:</strong></td>
+                        <td>{{ (prediction.confidence_score * 100)|int }}%</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <!-- Recommendations -->
+            <div class="recommendation">
+                <h3>📋 Recommendations</h3>
+                {% if condition == 'critical' %}
+                <p><strong style="color: #dc3545;">⚠️ IMMEDIATE ACTION REQUIRED:</strong></p>
+                <ul>
+                    <li>Ground aircraft immediately</li>
+                    <li>Do not attempt to fly until all critical issues are resolved</li>
+                    <li>Contact maintenance team for emergency inspection</li>
+                </ul>
+                {% elif condition == 'warning' %}
+                <p><strong style="color: #856404;">📅 MAINTENANCE REQUIRED:</strong></p>
+                <ul>
+                    <li>Schedule maintenance before next flight</li>
+                    <li>Perform detailed inspection of detected issues</li>
+                    <li>Monitor affected systems closely</li>
+                </ul>
+                {% else %}
+                <p><strong style="color: #155724;">✅ ALL SYSTEMS NORMAL:</strong></p>
+                <ul>
+                    <li>Continue with regular maintenance schedule</li>
+                    <li>Next scheduled inspection is recommended</li>
+                    <li>All systems operating within normal parameters</li>
+                </ul>
+                {% endif %}
+            </div>
+            
+            <!-- Action Buttons -->
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="http://localhost:5000/prediction" class="btn">📊 View Full Report</a>
+                <a href="http://localhost:5000/" class="btn" style="background: #6c757d;">✈️ New Prediction</a>
+            </div>
+            
+            <!-- Footer -->
+            <div class="footer">
+                <p><strong>Aircraft Predictive Maintenance System</strong></p>
+                <p>This is an automated email. Please do not reply directly.</p>
+                <p style="margin-top: 15px; font-size: 10px; color: #999;">
+                    Confidentiality Notice: This email contains confidential information intended only for the recipients.
+                    If you received this email in error, please delete it immediately.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
